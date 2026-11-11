@@ -1,7 +1,9 @@
 import { supabase } from './supabase'
+import { fetchStoreSettings, calculateShipping } from './settingsService'
 
 export const createOrder = async (order) => {
   try {
+    const settings = await fetchStoreSettings({ force: true })
     // 1. Robust Filtering (Ensure mutually exclusive)
     const customizedItems = order.items.filter(item => 
       item.type === 'customized' || (item.ingredients && item.ingredients.length > 0)
@@ -22,7 +24,7 @@ export const createOrder = async (order) => {
     if (normalItems.length > 0) {
       // Calculate specific total for normal items only
       const normalSubtotal = normalItems.reduce((acc, item) => acc + (item.price * item.qty), 0)
-      const normalShipping = normalSubtotal >= 500 ? 0 : 49
+      const normalShipping = calculateShipping(normalSubtotal, settings)
       const normalTotal = normalSubtotal + normalShipping
 
       const productOrderPayload = {
@@ -37,7 +39,7 @@ export const createOrder = async (order) => {
         customer_pincode: order.pincode,
 
         payment_method: order.payment_method,
-        payment_status: 'pending',
+        payment_status: order.payment_status || 'pending',
 
         subtotal: normalSubtotal,
         shipping: normalShipping,
@@ -79,7 +81,7 @@ export const createOrder = async (order) => {
         customer_pincode: order.pincode,
 
         payment_method: order.payment_method,
-        payment_status: 'pending',
+        payment_status: order.payment_status || 'pending',
         order_status: 'pending',
 
         customized_product_name: item.name,
@@ -111,6 +113,8 @@ export const createOrder = async (order) => {
     // 4. Trigger WhatsApp Notification
     try {
       if (primaryOrderId) {
+        const orderShipping = order.shipping ?? calculateShipping(order.subtotal, settings)
+        const orderTotal = order.total_amount ?? (Number(order.subtotal || 0) + orderShipping)
         await supabase.functions.invoke('send-whatsapp-order', {
           body: {
             orderNumber: primaryOrderId,
@@ -120,8 +124,8 @@ export const createOrder = async (order) => {
             address: `${order.address}, ${order.city} ${order.pincode}`,
             paymentMethod: order.payment_method,
             subtotal: order.subtotal,
-            shipping: order.shipping,
-            total: order.total_amount,
+            shipping: orderShipping,
+            total: orderTotal,
             orderDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
             items: notificationItems
           }
@@ -131,7 +135,7 @@ export const createOrder = async (order) => {
       console.warn('WhatsApp notification failed to send:', funcErr)
     }
 
-    return { success: true }
+    return { success: true, orderId: primaryOrderId }
   } catch (error) {
     console.error('Order creation failed:', error)
     return { success: false, error: error.message }
@@ -151,7 +155,7 @@ export const createProductOrder = async (order) => {
     customer_pincode: order.pincode,
 
     payment_method: order.payment_method,
-    payment_status: 'pending',
+    payment_status: order.payment_status || 'pending',
 
     subtotal: order.subtotal,
     shipping: order.shipping,
@@ -181,7 +185,7 @@ export const createCustomizedOrder = async (order) => {
     customer_pincode: order.pincode,
 
     payment_method: order.payment_method,
-    payment_status: 'pending',
+    payment_status: order.payment_status || 'pending',
     order_status: 'pending',
 
     customized_product_name: order.customized_product_name,

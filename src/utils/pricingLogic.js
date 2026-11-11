@@ -19,12 +19,19 @@ export const getTotalWeight = (selectedSizes) => {
   return 0;
 };
 
-export const calculateIngredientWeights = (totalWeightGrams, numIngredients) => {
+export const calculateIngredientWeights = (
+  totalWeightGrams,
+  numIngredients,
+  ingredientWeightPercent = 80
+) => {
   if (numIngredients === 0 || totalWeightGrams === 0) {
     return { ingredientTotalWeightGrams: 0, baseItemsWeightGrams: 0, weightPerIngredientGrams: 0 };
   }
-  const ingredientTotalWeightGrams = totalWeightGrams * 0.8;
-  const baseItemsWeightGrams = totalWeightGrams * 0.2;
+  const pct = Math.min(100, Math.max(0, Number(ingredientWeightPercent) || 0));
+  const ingRatio = pct / 100;
+  const baseRatio = 1 - ingRatio;
+  const ingredientTotalWeightGrams = totalWeightGrams * ingRatio;
+  const baseItemsWeightGrams = totalWeightGrams * baseRatio;
   const weightPerIngredientGrams = ingredientTotalWeightGrams / numIngredients;
   
   return {
@@ -38,7 +45,8 @@ export const calculateCustomizedLadduPrice = ({
   selectedIngredients = [],
   selectedVarieties = [],
   selectedSizes = [],
-  baseItemPricePerKg = 0
+  baseItemPricePerKg = 0,
+  ingredientWeightPercent = 80
 }) => {
   const totalWeightGrams = getTotalWeight(selectedSizes);
   
@@ -56,7 +64,7 @@ export const calculateCustomizedLadduPrice = ({
     ingredientTotalWeightGrams, 
     baseItemsWeightGrams, 
     weightPerIngredientGrams 
-  } = calculateIngredientWeights(totalWeightGrams, selectedIngredients.length);
+  } = calculateIngredientWeights(totalWeightGrams, selectedIngredients.length, ingredientWeightPercent);
   
   let ingredientsCost = 0;
   const ingredientBreakdown = [];

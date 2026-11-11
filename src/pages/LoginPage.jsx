@@ -1,18 +1,56 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react'
-import { signIn, signUp, supabase } from '../services/supabase'
+import { signIn, signUp, signInWithGoogle, supabase } from '../services/supabase'
+import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const [mode, setMode] = useState('login')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const navigate = useNavigate()
   const location = useLocation()
+  const { user, loading: authLoading } = useAuth()
   const from = location.state?.from?.pathname || '/'
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate(from, { replace: true })
+    }
+  }, [user, authLoading, from, navigate])
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''))
+    const oauthError =
+      searchParams.get('error_description') ||
+      hashParams.get('error_description') ||
+      searchParams.get('error') ||
+      hashParams.get('error')
+    if (oauthError) {
+      toast.error(decodeURIComponent(oauthError.replace(/\+/g, ' ')))
+    }
+  }, [location.search, location.hash])
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true)
+    try {
+      const { error } = await signInWithGoogle(from)
+      if (error) throw error
+    } catch (err) {
+      const msg = err?.message || 'Google sign-in failed'
+      if (msg.toLowerCase().includes('provider is not enabled')) {
+        toast.error('Google login is not enabled in Supabase Dashboard yet.')
+      } else {
+        toast.error(msg)
+      }
+      setGoogleLoading(false)
+    }
+  }
 
   const onChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
@@ -170,15 +208,15 @@ export default function LoginPage() {
 
               <motion.button
                 type="submit"
-                disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.02, boxShadow: '0 6px 24px rgba(200,150,12,0.35)' }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
+                disabled={loading || googleLoading}
+                whileHover={{ scale: loading || googleLoading ? 1 : 1.02, boxShadow: '0 6px 24px rgba(200,150,12,0.35)' }}
+                whileTap={{ scale: loading || googleLoading ? 1 : 0.98 }}
                 style={{
                   width: '100%', padding: '13px 0',
-                  background: loading ? '#e0c97a' : '#C8960C',
+                  background: loading || googleLoading ? '#e0c97a' : '#C8960C',
                   color: '#fff', border: 'none', borderRadius: 10,
                   fontFamily: 'Poppins,sans-serif', fontSize: 15, fontWeight: 600,
-                  cursor: loading ? 'not-allowed' : 'pointer',
+                  cursor: loading || googleLoading ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   marginTop: 4, letterSpacing: '0.02em', transition: 'background 0.2s',
                 }}
@@ -199,19 +237,30 @@ export default function LoginPage() {
           </div>
 
           {/* Google */}
-          <button style={{
-            width: '100%', padding: '12px 0', background: '#fff',
-            border: '1.5px solid rgba(200,150,12,0.2)', borderRadius: 10,
-            fontFamily: 'Poppins,sans-serif', fontSize: 14, color: '#555',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M5.26 9.77A7.15 7.15 0 0 1 12 4.85c1.73 0 3.28.62 4.52 1.64l3.35-3.35A11.98 11.98 0 0 0 12 .85C7.63.85 3.82 3.34 1.98 7l3.28 2.77Z"/>
-              <path fill="#FBBC05" d="M16.52 17.82A7.14 7.14 0 0 1 12 19.15a7.15 7.15 0 0 1-6.73-4.73l-3.28 2.54A12 12 0 0 0 12 23.15c3.1 0 5.91-1.12 8.07-2.96l-3.55-2.37Z"/>
-              <path fill="#4285F4" d="M23.15 12c0-.85-.07-1.65-.2-2.44H12v4.61h6.27a5.34 5.34 0 0 1-2.32 3.5l3.55 2.37C21.78 18.1 23.15 15.27 23.15 12Z"/>
-              <path fill="#34A853" d="M5.27 14.42A7.24 7.24 0 0 1 4.85 12c0-.85.15-1.67.42-2.44L1.98 6.97A12.02 12.02 0 0 0 .85 12c0 1.93.46 3.74 1.13 5.38l3.29-2.96Z"/>
-            </svg>
-            Continue with Google
+          <button
+            type="button"
+            disabled={loading || googleLoading}
+            onClick={handleGoogleSignIn}
+            style={{
+              width: '100%', padding: '12px 0', background: '#fff',
+              border: '1.5px solid rgba(200,150,12,0.2)', borderRadius: 10,
+              fontFamily: 'Poppins,sans-serif', fontSize: 14, color: '#555',
+              cursor: loading || googleLoading ? 'not-allowed' : 'pointer',
+              opacity: googleLoading ? 0.7 : 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            }}
+          >
+            {googleLoading ? (
+              <div style={{ width: 18, height: 18, border: '2px solid rgba(200,150,12,0.25)', borderTopColor: '#C8960C', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M5.26 9.77A7.15 7.15 0 0 1 12 4.85c1.73 0 3.28.62 4.52 1.64l3.35-3.35A11.98 11.98 0 0 0 12 .85C7.63.85 3.82 3.34 1.98 7l3.28 2.77Z"/>
+                <path fill="#FBBC05" d="M16.52 17.82A7.14 7.14 0 0 1 12 19.15a7.15 7.15 0 0 1-6.73-4.73l-3.28 2.54A12 12 0 0 0 12 23.15c3.1 0 5.91-1.12 8.07-2.96l-3.55-2.37Z"/>
+                <path fill="#4285F4" d="M23.15 12c0-.85-.07-1.65-.2-2.44H12v4.61h6.27a5.34 5.34 0 0 1-2.32 3.5l3.55 2.37C21.78 18.1 23.15 15.27 23.15 12Z"/>
+                <path fill="#34A853" d="M5.27 14.42A7.24 7.24 0 0 1 4.85 12c0-.85.15-1.67.42-2.44L1.98 6.97A12.02 12.02 0 0 0 .85 12c0 1.93.46 3.74 1.13 5.38l3.29-2.96Z"/>
+              </svg>
+            )}
+            {googleLoading ? 'Connecting to Google...' : 'Continue with Google'}
           </button>
         </div>
 

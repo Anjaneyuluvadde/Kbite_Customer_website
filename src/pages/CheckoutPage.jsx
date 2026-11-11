@@ -6,6 +6,8 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { createOrder } from '../services/orderService'
+import { initiateRazorpayPayment } from '../services/razorpayService'
+import { useStoreSettings, calculateShipping } from '../services/settingsService'
 
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart()
@@ -32,11 +34,13 @@ export default function CheckoutPage() {
       }))
     }
   }, [user])
-  const shipping = total >= 500 ? 0 : 49
+  const storeSettings = useStoreSettings()
+  const shipping = calculateShipping(total, storeSettings)
   const onChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
   const handleOrder = async e => {
     e.preventDefault()
+    if (!storeSettings.loaded) return toast.error('Loading shipping settings, please wait a moment...')
     if (!form.name || !form.phone || !form.address || !form.city || !form.pincode) return toast.error('Please fill all fields')
 
     setLoading(true)
@@ -47,32 +51,61 @@ export default function CheckoutPage() {
       price: Number(item.price)
     }))
 
-    const result = await createOrder({
-      customer_name: form.name,
-      customer_phone: form.phone,
-      customer_email: form.email,
-      address: form.address,
-      city: form.city,
-      pincode: form.pincode,
-      payment_method: payment,
-      subtotal: total,
-      shipping: shipping,
-      total_amount: total + shipping,
-      items: orderItems
-    })
-
-    if (result.success) {
-      setOrderPlaced(true)
-      toast.success('Order placed successfully! 🙏')
-      clearCart()
-      navigate('/order-success', {
-        state: { orderId: result.orderId },
-        replace: true
+    const submitOrderToDb = async (paymentStatus) => {
+      const result = await createOrder({
+        customer_name: form.name,
+        customer_phone: form.phone,
+        customer_email: form.email,
+        address: form.address,
+        city: form.city,
+        pincode: form.pincode,
+        payment_method: payment,
+        payment_status: paymentStatus,
+        subtotal: total,
+        shipping: shipping,
+        total_amount: total + shipping,
+        items: orderItems
       })
-    } else {
-      toast.error('Failed to place order. Please try again.')
-      setLoading(false)
+
+      if (result.success) {
+        setOrderPlaced(true)
+        toast.success('Order placed successfully! 🙏')
+        clearCart()
+        navigate('/order-success', {
+          state: { orderId: result.orderId },
+          replace: true
+        })
+      } else {
+        toast.error('Failed to place order. Please try again.')
+        setLoading(false)
+      }
     }
+
+    if (payment === 'cod') {
+      await submitOrderToDb('pending')
+      return
+    }
+
+    await initiateRazorpayPayment({
+      amount: total + shipping,
+      items: orderItems,
+      customer: {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+      },
+      onSuccess: async () => {
+        await submitOrderToDb('paid')
+      },
+      onFailure: (msg) => {
+        toast.error(msg || 'Payment failed. Please try again.')
+        setLoading(false)
+      },
+      onDismiss: () => {
+        toast('Payment cancelled')
+        setLoading(false)
+      },
+    })
   }
 
   const inp = { width: '100%', padding: '11px 14px', borderRadius: 8, border: '1.5px solid rgba(200,150,12,0.2)', background: '#FFFBF4', fontFamily: 'Poppins,sans-serif', fontSize: 14, color: '#333', outline: 'none', boxSizing: 'border-box' }
@@ -121,7 +154,7 @@ export default function CheckoutPage() {
                   <CreditCard size={18} color="#C8960C" /> Payment Method
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {[['cod', 'Cash on Delivery', 'Pay when you receive'], ['upi', 'UPI / Net Banking', 'Razorpay secure payment'], ['card', 'Credit / Debit Card', 'Visa, Mastercard, Rupay']].map(([val, label, sub]) => (
+                  {[['cod', 'Cash on Delivery', 'Pay when you receive'], ['upi', 'UPI / Net Banking', 'Razorpay secure payment'], ['card', 'Credit / Debit Card', 'Visa, Mastercard, Rupay — Razorpay']].map(([val, label, sub]) => (
                     <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 10, border: `1.5px solid ${payment === val ? '#C8960C' : 'rgba(200,150,12,0.15)'}`, background: payment === val ? 'rgba(200,150,12,0.04)' : '#fff', cursor: 'pointer' }}>
                       <input type="radio" value={val} checked={payment === val} onChange={() => setPayment(val)} style={{ accentColor: '#C8960C', width: 16, height: 16 }} />
                       <div>
@@ -155,16 +188,16 @@ export default function CheckoutPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: '#888' }}>Shipping</span>
-                  <span style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: shipping === 0 ? '#2e7d32' : '#333' }}>{shipping === 0 ? 'FREE' : `₹${shipping}`}</span>
+                  <span style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: !storeSettings.loaded ? '#888' : shipping === 0 ? '#2e7d32' : '#333' }}>{!storeSettings.loaded ? '...' : shipping === 0 ? 'FREE' : `₹${shipping}`}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
                 <span style={{ fontFamily: '"Playfair Display",serif', fontSize: 18, fontWeight: 700, color: '#333' }}>Total</span>
-                <span style={{ fontFamily: '"Playfair Display",serif', fontSize: 22, fontWeight: 700, color: '#C8960C' }}>₹{(total + shipping).toLocaleString()}</span>
+                <span style={{ fontFamily: '"Playfair Display",serif', fontSize: 22, fontWeight: 700, color: '#C8960C' }}>{!storeSettings.loaded ? '...' : `₹${(total + shipping).toLocaleString()}`}</span>
               </div>
-              <motion.button type="submit" disabled={loading} whileHover={{ scale: loading ? 1 : 1.02 }} whileTap={{ scale: loading ? 1 : 0.98 }}
-                style={{ width: '100%', padding: '14px 0', background: loading ? '#e0c97a' : '#C8960C', color: '#fff', border: 'none', borderRadius: 10, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'Poppins,sans-serif', fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                {loading ? <div style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : 'Place Order 🙏'}
+              <motion.button type="submit" disabled={loading || !storeSettings.loaded} whileHover={{ scale: (loading || !storeSettings.loaded) ? 1 : 1.02 }} whileTap={{ scale: (loading || !storeSettings.loaded) ? 1 : 0.98 }}
+                style={{ width: '100%', padding: '14px 0', background: (loading || !storeSettings.loaded) ? '#e0c97a' : '#C8960C', color: '#fff', border: 'none', borderRadius: 10, cursor: (loading || !storeSettings.loaded) ? 'not-allowed' : 'pointer', fontFamily: 'Poppins,sans-serif', fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {loading ? <div style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> : !storeSettings.loaded ? 'Loading...' : (payment === 'cod' ? 'Place Order 🙏' : `Pay ₹${(total + shipping).toLocaleString()} via Razorpay`)}
               </motion.button>
             </div>
           </div>

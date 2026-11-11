@@ -12,3 +12,15 @@ export const signUp = (email, password) =>
   supabase.auth.signUp({ email, password })
 
 export const signOut = () => supabase.auth.signOut()
+
+export const signInWithGoogle = (redirectPath = '/') => {
+  const safePath = typeof redirectPath === 'string' && redirectPath.startsWith('/')
+    ? redirectPath
+    : '/'
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}${safePath}`,
+    },
+  })
+}

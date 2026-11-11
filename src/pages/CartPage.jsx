@@ -5,11 +5,13 @@ import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { calculateCustomizedLadduPrice } from '../utils/pricingLogic'
 import { supabase } from '../services/supabase'
+import { useStoreSettings, calculateShipping } from '../services/settingsService'
 
 export default function CartPage() {
   const { items, addToCart, removeFromCart, updateQty, total, updateItemSize } = useCart()
   const navigate = useNavigate()
-  const shipping = total >= 500 ? 0 : 49
+  const storeSettings = useStoreSettings()
+  const shipping = calculateShipping(total, storeSettings)
 
   const [customizedSizes, setCustomizedSizes] = useState([])
   const [selectedCustomizedSizes, setSelectedCustomizedSizes] = useState({})
@@ -492,7 +494,9 @@ export default function CartPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: '#888' }}>Shipping</span>
-                  <span style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: shipping === 0 ? '#2e7d32' : '#333' }}>{shipping === 0 ? 'FREE' : `₹${shipping}`}</span>
+                  <span style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: shipping === 0 ? '#2e7d32' : '#333' }}>
+                    {!storeSettings.loaded ? '...' : (shipping === 0 ? 'FREE' : `₹${shipping}`)}
+                  </span>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>

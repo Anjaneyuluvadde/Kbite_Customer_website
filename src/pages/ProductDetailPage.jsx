@@ -5,9 +5,20 @@ import { ArrowLeft, ShoppingCart, Star, Plus, Minus, Shield, Truck, Leaf, Heart,
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import ProductCard from '../components/ProductCard'
-import { PRODUCTS } from '../utils/data'
-import { fetchProductById } from '../services/productService'
+import { fetchProductById, fetchProducts } from '../services/productService'
+import { useStoreSettings } from '../services/settingsService'
 import toast from 'react-hot-toast'
+
+const normalizeProduct = (p) => ({
+  ...p,
+  name: p.title || p.name,
+  image: p.image_url || p.image,
+  rating: p.rating || 4.5,
+  reviews: p.reviews || 0,
+  category: p.category || 'sweets',
+  originalPrice: p.old_price,
+  discount: p.discount,
+})
 
 export default function ProductDetailPage() {
   const { id } = useParams()
@@ -17,35 +28,45 @@ export default function ProductDetailPage() {
   const { user } = useAuth()
   const [tab, setTab] = useState('description')
   const [product, setProduct] = useState(null)
+  const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
+  const storeSettings = useStoreSettings()
 
   useEffect(() => {
+    let active = true
     const loadProduct = async () => {
       setLoading(true)
-      // Try local data first
-      let found = PRODUCTS.find(p => p.id === id)
-      
-      if (!found) {
-        // Fetch from Supabase if not in local data
-        const dbProduct = await fetchProductById(id)
-        if (dbProduct) {
-          found = {
-            ...dbProduct,
-            name: dbProduct.title || dbProduct.name,
-            image: dbProduct.image_url || dbProduct.image
-          }
-        }
-      }
-      
+      const [dbProduct, allProducts] = await Promise.all([
+        fetchProductById(id),
+        fetchProducts(),
+      ])
+      if (!active) return
+
+      const found = dbProduct ? normalizeProduct(dbProduct) : null
       setProduct(found)
+      setRelated(
+        found
+          ? (allProducts || [])
+              .filter(p => String(p.id) !== String(id) && (p.category || 'sweets') === found.category)
+              .slice(0, 4)
+              .map(normalizeProduct)
+          : []
+      )
       setLoading(false)
     }
-    
+
     loadProduct()
     window.scrollTo(0, 0);
+    return () => { active = false }
   }, [id])
 
-  const related = PRODUCTS.filter(p => p.id !== id && p.category === product?.category).slice(0, 4)
+  const shippingBadgeText = !storeSettings.loaded
+    ? 'Fresh Delivery'
+    : storeSettings.shippingCharge === 0
+      ? 'Free Delivery'
+      : storeSettings.freeShippingThreshold > 0
+        ? `Free on ₹${storeSettings.freeShippingThreshold}+`
+        : `₹${storeSettings.shippingCharge} Delivery`
   const inWish = product ? isInWishlist(product.id) : false
 
   if (loading) {
@@ -236,7 +257,7 @@ export default function ProductDetailPage() {
 
             {/* Trust badges */}
             <div style={{ display: 'flex', gap: 20, paddingTop: 20, marginTop: 16, borderTop: '1px solid rgba(200,150,12,0.1)' }}>
-              {[{ icon: Shield, text: 'FSSAI Certified' }, { icon: Leaf, text: '100% Pure' }, { icon: Truck, text: 'Free on ₹500+' }].map(({ icon: Icon, text }) => (
+              {[{ icon: Shield, text: 'FSSAI Certified' }, { icon: Leaf, text: '100% Pure' }, { icon: Truck, text: shippingBadgeText }].map(({ icon: Icon, text }) => (
                 <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <Icon size={14} color="#C8960C" />
                   <span style={{ fontFamily: 'Poppins,sans-serif', fontSize: 12, color: '#888' }}>{text}</span>

@@ -8,6 +8,7 @@ import { Plus, Minus } from 'lucide-react'
 import customCardBanner from '../assets/images/custom_laddu_banner.png'
 
 import { supabase } from '../services/supabase'
+import { useStoreSettings } from '../services/settingsService'
 import { calculateCustomizedLadduPrice } from '../utils/pricingLogic'
 
 // Static Fallbacks (Uncomment if needed)
@@ -36,14 +37,13 @@ export default function CustomizeLaddu({ isOpen, onClose }) {
   const [ingredients, setIngredients] = useState([])
   const [varieties, setVarieties] = useState([])
   const [sizes, setSizes] = useState([])
-  const [baseItemPrice, setBaseItemPrice] = useState(300)
+  const storeSettings = useStoreSettings()
   const { addToCart } = useCart()
   const { user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchVarieties()
-    fetchSettings()
 
     const channelVarieties = supabase?.channel('varieties-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'varieties' }, fetchVarieties)
@@ -53,40 +53,16 @@ export default function CustomizeLaddu({ isOpen, onClose }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sizes' }, fetchSizes)
       .subscribe()
 
-    const channelSettings = supabase?.channel('settings-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, fetchSettings)
-      .subscribe()
-
     return () => {
       supabase?.removeChannel(channelVarieties)
       supabase?.removeChannel(channelSizes)
-      supabase?.removeChannel(channelSettings)
     }
   }, [])
 
   const fetchAllOptions = () => {
     fetchIngredients()
     fetchVarieties()
-    fetchSettings()
     // Sizes are fetched via useEffect listening to selectedVarietyId
-  }
-
-  const fetchSettings = async () => {
-    if (!supabase) return;
-    try {
-      const { data, error } = await supabase.from('settings').select('*')
-      if (!error && data && data.length > 0) {
-        const priceSetting = data.find(s => s.key === 'base_item_price_per_kg' || s.name === 'base_item_price_per_kg')
-        if (priceSetting && priceSetting.value) {
-          setBaseItemPrice(Number(priceSetting.value))
-          return;
-        }
-        if (data[0].base_item_price_per_kg) {
-          setBaseItemPrice(Number(data[0].base_item_price_per_kg))
-          return;
-        }
-      }
-    } catch (err) { }
   }
 
 
@@ -243,9 +219,10 @@ export default function CustomizeLaddu({ isOpen, onClose }) {
       selectedIngredients: selectedIngObjs,
       selectedVarieties: selectedVarObjs,
       selectedSizes: selectedSizeObjs,
-      baseItemPricePerKg: baseItemPrice
+      baseItemPricePerKg: storeSettings.baseItemPricePerKg,
+      ingredientWeightPercent: storeSettings.ingredientWeightPercent
     });
-  }, [ingredients, selectedIngredients, varieties, selectedVarietyIds, sizes, selectedSizes, baseItemPrice]);
+  }, [ingredients, selectedIngredients, varieties, selectedVarietyIds, sizes, selectedSizes, storeSettings.baseItemPricePerKg, storeSettings.ingredientWeightPercent]);
 
   const getVarietyName = () => {
     return varieties

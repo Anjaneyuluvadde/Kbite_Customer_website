@@ -1,177 +1,860 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Star, ShieldCheck, Truck, Leaf, Award, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowRight, Star, ShieldCheck, Truck, Leaf, Award, Gem, Gift, ChevronLeft, ChevronRight } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import CustomizeLaddu from '../components/CustomizeLaddu'
 import { fetchProducts } from '../services/productService'
-import { CATEGORY_DATA, TESTIMONIALS, HERO_SLIDES, hero1, catBesan, motichoorCard, festiveBanner, familyMoment, shopInterior } from '../utils/data'
-import customBanner from '../assets/images/custom_laddu_banner.png'
-import CustomizeLadduSection from '../components/CustomizeLadduSection'
+import { supabase } from '../services/supabase'
+import { CATEGORY_DATA, TESTIMONIALS, festiveBanner, familyMoment, shopInterior } from '../utils/data'
+import heroAssortedLaddu from '../assets/images/hero_assorted_laddu.jpg'
+import heroBesanMotichoorLaddu from '../assets/images/hero_besan_motichoor_laddu.jpg'
+import heroDryFruitCoconutLaddu from '../assets/images/hero_dryfruit_coconut_laddu.jpg'
+import motichoorThumb from '../assets/images/motichoor_laddu_product.png'
+import besanThumb from '../assets/images/besan_laddu_product.png'
+import coconutThumb from '../assets/images/coconut_laddu_product.png'
+import dryFruitThumb from '../assets/images/dry_fruit_laddu_product.png'
+import kajuThumb from '../assets/images/kaju_laddu_product.png'
 import logoEk from '../assets/images/logo_ek.png'
 
 /* ── Particles ── */
-const PARTICLES = Array.from({ length: 18 }, (_, i) => ({ id: i, size: Math.random() * 7 + 3, left: Math.random() * 100, dur: Math.random() * 8 + 5, delay: Math.random() * 6 }))
+const PARTICLES = Array.from({ length: 14 }, (_, i) => ({ id: i, size: Math.random() * 5 + 3, left: Math.random() * 100, dur: Math.random() * 8 + 6, delay: Math.random() * 6 }))
+
+const HERO_SHOWCASE_SLIDES = [
+  { image: heroAssortedLaddu, alt: 'Kbite assorted handcrafted laddus in decorative brass bowl', pos: '92% 45%' },
+  { image: heroBesanMotichoorLaddu, alt: 'Kbite golden Besan and Motichoor laddus in decorative brass bowl', pos: '92% 45%' },
+  { image: heroDryFruitCoconutLaddu, alt: 'Kbite rich Dry Fruit and Coconut laddus in decorative brass bowl', pos: '92% 45%' },
+]
+
+const VARIETY_THUMBS = [
+  { image: motichoorThumb, objPos: '46% 48%' },
+  { image: besanThumb, objPos: '52% 52%' },
+  { image: coconutThumb, objPos: '68% 58%' },
+  { image: dryFruitThumb, objPos: '42% 56%' },
+  { image: kajuThumb, objPos: '50% 50%' },
+]
+
+const HERO_LADDU_FALLBACKS = [
+  { id: 'fallback-1', name: 'Motichoor Laddu' },
+  { id: 'fallback-2', name: 'Besan Laddu' },
+  { id: 'fallback-3', name: 'Coconut Laddu' },
+  { id: 'fallback-4', name: 'Dry Fruit Laddu' },
+]
+
+function getVarietyVisual(variety, index) {
+  if (variety?.image_url || variety?.image) {
+    return { image: variety.image_url || variety.image, objPos: 'center' }
+  }
+  const name = (variety?.name || '').toLowerCase()
+  if (name.includes('motichoor') || name.includes('boondi')) return VARIETY_THUMBS[0]
+  if (name.includes('besan')) return VARIETY_THUMBS[1]
+  if (name.includes('coconut')) return VARIETY_THUMBS[2]
+  if (name.includes('choc')) return VARIETY_THUMBS[3]
+  if (name.includes('bite')) return VARIETY_THUMBS[4]
+  if (name.includes('dry') || name.includes('nut')) return VARIETY_THUMBS[3]
+  if (name.includes('kaju')) return VARIETY_THUMBS[4]
+  return VARIETY_THUMBS[index % VARIETY_THUMBS.length]
+}
+
+function LotusOrnament() {
+  return (
+    <svg width="34" height="22" viewBox="0 0 36 24" fill="none" aria-hidden="true" style={{ margin: '0 auto 8px', opacity: 0.92 }}>
+      <path d="M18 3C16.2 7.5 15.6 12.2 18 17.5C20.4 12.2 19.8 7.5 18 3Z" stroke="#E6B84A" strokeWidth="1.25" strokeLinejoin="round" />
+      <path d="M18 17.5C13.5 15 11.2 10.6 11.6 6.2C14.7 8.4 16.8 12.3 18 17.5Z" stroke="#E6B84A" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M18 17.5C22.5 15 24.8 10.6 24.4 6.2C21.3 8.4 19.2 12.3 18 17.5Z" stroke="#E6B84A" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M18 17.8C12.2 17.4 7.8 14.5 5.6 10.4C9.5 10.8 13.7 13.4 18 17.8Z" stroke="#E6B84A" strokeWidth="1.1" strokeLinejoin="round" />
+      <path d="M18 17.8C23.8 17.4 28.2 14.5 30.4 10.4C26.5 10.8 22.3 13.4 18 17.8Z" stroke="#E6B84A" strokeWidth="1.1" strokeLinejoin="round" />
+      <path d="M11 20.2C14.5 19.4 21.5 19.4 25 20.2" stroke="#E6B84A" strokeWidth="1.1" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function CornerMandala({ flip = false }) {
+  const gradId = `goldCornerGrad-${flip ? 'r' : 'l'}`
+  const fillId = `goldCornerFill-${flip ? 'r' : 'l'}`
+  return (
+    <svg
+      width="170"
+      height="170"
+      viewBox="0 0 180 180"
+      fill="none"
+      aria-hidden="true"
+      className="kbite-hero-corner"
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        [flip ? 'right' : 'left']: 0,
+        transform: flip ? 'scaleX(-1)' : 'none',
+        pointerEvents: 'none',
+        zIndex: 2,
+        opacity: 0.55,
+      }}
+    >
+      <path d="M0 44C26 44 48 56 64 76C80 96 92 122 104 152C110 166 122 176 138 180H0V44Z" stroke={`url(#${gradId})`} strokeWidth="1.1" fill={`url(#${fillId})`} />
+      <path d="M0 72C22 72 40 84 52 102C64 120 74 142 86 164C92 173 102 178 112 180" stroke="#D4A438" strokeWidth="1" strokeDasharray="3 3" />
+      <path d="M0 100C18 100 34 112 42 128C50 144 58 162 72 180" stroke="#D4A438" strokeWidth="1.1" />
+      <path d="M10 180C12 146 28 122 52 108C40 132 38 156 44 180" stroke="#E5BA54" strokeWidth="1" />
+      <path d="M0 138C24 134 44 146 58 168" stroke="#E5BA54" strokeWidth="1" />
+      <circle cx="24" cy="154" r="10" stroke="#E5BA54" strokeWidth="1" />
+      <circle cx="24" cy="154" r="4" stroke="#E5BA54" strokeWidth="0.9" />
+      <circle cx="48" cy="134" r="6" stroke="#D4A438" strokeWidth="0.9" />
+      <circle cx="68" cy="158" r="5" stroke="#D4A438" strokeWidth="0.9" />
+      <circle cx="14" cy="112" r="4" stroke="#D4A438" strokeWidth="0.9" />
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="44" x2="138" y2="180" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#E9BE58" stopOpacity="0.9" />
+          <stop offset="1" stopColor="#9E6E14" stopOpacity="0.2" />
+        </linearGradient>
+        <linearGradient id={fillId} x1="0" y1="60" x2="110" y2="180" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#C8960C" stopOpacity="0.12" />
+          <stop offset="1" stopColor="#C8960C" stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}
 
 /* ── Hero ── */
 function Hero({ onOpen }) {
-  const navigate = useNavigate()
   const [idx, setIdx] = useState(0)
-  const total = HERO_SLIDES.length
-  useEffect(() => { const t = setInterval(() => setIdx(i => (i + 1) % total), 5000); return () => clearInterval(t) }, [])
-  const [showChoices, setShowChoices] = useState(false)
+  const [paused, setPaused] = useState(false)
+  const total = HERO_SHOWCASE_SLIDES.length
 
-  const scrollToSection = (id) => {
-    const el = document.getElementById(id)
-    if (el) {
-      const offset = 80 // Navbar height offset
-      const bodyRect = document.body.getBoundingClientRect().top
-      const elementRect = el.getBoundingClientRect().top
-      const elementPosition = elementRect - bodyRect
-      const offsetPosition = elementPosition - offset
+  const [varieties, setVarieties] = useState([])
+  const [loadingVarieties, setLoadingVarieties] = useState(true)
+  const [sliderPaused, setSliderPaused] = useState(false)
+  const [scrollState, setScrollState] = useState({ left: false, right: false, scrollable: false })
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
+  const sliderRef = useRef(null)
+  const dragStateRef = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false })
+
+  useEffect(() => {
+    if (paused) return
+    const t = setInterval(() => setIdx(i => (i + 1) % total), 6500)
+    return () => clearInterval(t)
+  }, [paused, total])
+
+  // Fetch Step 2 Variety Types from Supabase (same source & real-time updates as CustomizeLaddu)
+  useEffect(() => {
+    let active = true
+
+    const fetchHeroVarieties = async () => {
+      if (!supabase) {
+        if (active) setLoadingVarieties(false)
+        return
+      }
+      const { data, error } = await supabase
+        .from('varieties')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+
+      if (active) {
+        if (!error && Array.isArray(data)) {
+          setVarieties(data)
+        }
+        setLoadingVarieties(false)
+      }
+    }
+
+    fetchHeroVarieties()
+
+    const channelVarieties = supabase
+      ?.channel('hero-varieties-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'varieties' }, fetchHeroVarieties)
+      .subscribe()
+
+    return () => {
+      active = false
+      if (channelVarieties) supabase?.removeChannel(channelVarieties)
+    }
+  }, [])
+
+  const displayVarieties = varieties.length > 0 ? varieties : (loadingVarieties ? [] : HERO_LADDU_FALLBACKS)
+
+  const updateScrollState = useCallback(() => {
+    const el = sliderRef.current
+    if (!el) return
+    const scrollable = el.scrollWidth > el.clientWidth + 4
+    const left = el.scrollLeft > 4
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4
+    setScrollState({ left, right, scrollable })
+  }, [])
+
+  useEffect(() => {
+    updateScrollState()
+    const el = sliderRef.current
+    if (!el) return
+    let ro
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(updateScrollState)
+      ro.observe(el)
+    }
+    window.addEventListener('resize', updateScrollState)
+    return () => {
+      ro?.disconnect()
+      window.removeEventListener('resize', updateScrollState)
+    }
+  }, [displayVarieties.length, updateScrollState])
+
+  // Gentle auto-scroll when the slider overflows horizontally
+  useEffect(() => {
+    if (sliderPaused || !scrollState.scrollable) return
+    const timer = setInterval(() => {
+      const el = sliderRef.current
+      if (!el) return
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8
+      if (atEnd) {
+        el.scrollTo({ left: 0, behavior: 'smooth' })
+      } else {
+        el.scrollBy({ left: 260, behavior: 'smooth' })
+      }
+    }, 3800)
+    return () => clearInterval(timer)
+  }, [sliderPaused, scrollState.scrollable])
+
+  const scrollVarieties = (dir) => {
+    const el = sliderRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * 270, behavior: 'smooth' })
+  }
+
+  const handleMouseDown = (e) => {
+    const el = sliderRef.current
+    if (!el) return
+    dragStateRef.current = {
+      active: true,
+      startX: e.pageX - el.offsetLeft,
+      scrollLeft: el.scrollLeft,
+      moved: false,
     }
   }
 
+  const handleMouseMove = (e) => {
+    const el = sliderRef.current
+    if (!el || !dragStateRef.current.active) return
+    const x = e.pageX - el.offsetLeft
+    const walk = x - dragStateRef.current.startX
+    if (Math.abs(walk) > 6) {
+      dragStateRef.current.moved = true
+      e.preventDefault()
+      el.scrollLeft = dragStateRef.current.scrollLeft - walk
+    }
+  }
+
+  const endDrag = () => {
+    dragStateRef.current.active = false
+  }
+
   return (
-    <section style={{ minHeight: '100vh', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: '#2C1200' }}>
-      {/* BG slides */}
-      <AnimatePresence mode="wait">
-        <motion.div key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.2 }}
-          style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-          <img src={HERO_SLIDES[idx].image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }} />
-          {/* Masking Gradient */}
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to right, rgba(40, 0, 0, 0.98) 0%, rgba(60, 0, 0, 0.85) 30%, rgba(120, 5, 5, 0.4) 100%)'
-          }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, transparent 0%, rgba(20, 0, 0, 0.75) 100%)' }} />
-        </motion.div>
-      </AnimatePresence>
+    <section
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      className="kbite-hero-section"
+      style={{
+        minHeight: '100vh',
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        overflow: 'hidden',
+        background: '#2E0204',
+      }}
+    >
+      {/* Hero-scoped responsive styles */}
+      <style>{`
+        .kbite-hero-inner {
+          position: relative;
+          z-index: 4;
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 96px clamp(16px, 4vw, 40px) 34px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          gap: 28px;
+        }
+        .kbite-hero-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+          gap: 28px;
+          align-items: center;
+          flex: 1;
+        }
+        .kbite-hero-left {
+          width: 100%;
+          max-width: 530px;
+          margin: 0 auto;
+          text-align: center;
+        }
+        .kbite-hero-mobile-visual {
+          display: block;
+          width: 100%;
+          max-width: 520px;
+          margin: 0 auto;
+          border-radius: 18px;
+          overflow: hidden;
+          border: 1px solid rgba(218, 165, 50, 0.35);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+          position: relative;
+          aspect-ratio: 16 / 10;
+          background: #230103;
+        }
+        .kbite-hero-bg-desktop {
+          opacity: 0.22;
+        }
+        .kbite-hero-features {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 14px 18px;
+          margin-top: 26px;
+        }
+        .kbite-hero-divider {
+          display: none;
+          width: 1px;
+          height: 30px;
+          background: rgba(230, 185, 90, 0.28);
+        }
+        .kbite-hero-slider-wrap {
+          position: relative;
+          width: 100%;
+          max-width: 1040px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+        }
+        .kbite-hero-slider-track {
+          display: flex;
+          align-items: stretch;
+          gap: 14px;
+          width: 100%;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding: 4px 2px;
+          cursor: grab;
+        }
+        .kbite-hero-slider-track:active {
+          cursor: grabbing;
+        }
+        .kbite-hero-slider-track::-webkit-scrollbar {
+          display: none;
+        }
+        .kbite-hero-card-item {
+          flex: 0 0 auto;
+          width: clamp(205px, 64vw, 248px);
+          scroll-snap-align: start;
+        }
+        .kbite-hero-nav-btn {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 6;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          border: 1px solid rgba(218, 165, 50, 0.55);
+          background: rgba(42, 3, 5, 0.92);
+          color: #E6B84A;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+          transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+        .kbite-hero-nav-btn:hover {
+          background: rgba(88, 12, 15, 0.96);
+          border-color: rgba(235, 185, 65, 0.9);
+          transform: translateY(-50%) scale(1.06);
+        }
+        .kbite-hero-cta {
+          width: 100%;
+          justify-content: center;
+        }
+        .kbite-hero-corner {
+          width: 110px;
+          height: 110px;
+        }
+        @media (min-width: 520px) {
+          .kbite-hero-cta {
+            width: auto;
+          }
+          .kbite-hero-divider {
+            display: block;
+          }
+          .kbite-hero-features {
+            flex-wrap: nowrap;
+            gap: 16px;
+          }
+          .kbite-hero-card-item {
+            width: clamp(220px, 38vw, 250px);
+          }
+        }
+        @media (min-width: 768px) {
+          .kbite-hero-card-item {
+            width: clamp(225px, 23.5%, 252px);
+          }
+          .kbite-hero-corner {
+            width: 145px;
+            height: 145px;
+          }
+        }
+        @media (min-width: 960px) {
+          .kbite-hero-inner {
+            padding: 102px clamp(24px, 4vw, 48px) 32px;
+          }
+          .kbite-hero-grid {
+            grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+            gap: 32px;
+          }
+          .kbite-hero-left {
+            margin: 0;
+            justify-self: start;
+            max-width: 470px;
+          }
+          .kbite-hero-mobile-visual {
+            display: none;
+          }
+          .kbite-hero-bg-desktop {
+            opacity: 1;
+          }
+          .kbite-hero-corner {
+            width: 170px;
+            height: 170px;
+          }
+        }
+        @media (min-width: 1200px) {
+          .kbite-hero-left {
+            max-width: 530px;
+          }
+        }
+      `}</style>
 
-      {/* Particles */}
-      {PARTICLES.map(p => (
-        <div key={p.id} className="particle" style={{ width: p.size, height: p.size, left: `${p.left}%`, bottom: -20, background: 'rgba(200, 150, 12, 0.45)', animationDuration: `${p.dur}s`, animationDelay: `${p.delay}s`, zIndex: 1 }} />
-      ))}
-
-      {/* Content */}
-      <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', padding: '0 clamp(16px, 4vw, 24px)', maxWidth: 1000, margin: '0 auto', paddingTop: 40 }}>
+      {/* Background Photography Showcase */}
+      <div className="kbite-hero-bg-desktop" style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <AnimatePresence mode="wait">
-          {!showChoices ? (
-            <motion.div key="main-hero" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.6 }}>
-              <h1 className="hero-title" style={{
-                fontFamily: '"Playfair Display",serif', fontWeight: 900, fontSize: 'clamp(56px,12vw,100px)', color: '#C8960C',
-                lineHeight: 1.1, letterSpacing: '-0.01em', marginBottom: 24,
-                textShadow: '0 4px 15px rgba(0,0,0,0.4)'
-              }}>
-                Kbite
-              </h1>
-              <p style={{
-                fontFamily: 'Poppins,sans-serif', fontSize: 'clamp(15px,2.5vw,18px)', color: 'rgba(255,245,225,0.9)',
-                lineHeight: 1.6, maxWidth: 650, margin: '0 auto 48px', letterSpacing: '0.02em',
-                textShadow: '0 2px 8px rgba(0,0,0,0.5)'
-              }}>
-                Experience the authentic flavors of India with our premium sweets, ladoos, and dry fruits
-              </p>
-
-              <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                <button className="btn-primary" onClick={() => setShowChoices(true)}
-                  style={{ fontSize: 15, padding: '15px 48px', fontWeight: 600, boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}>
-                  choose your laddu
-                </button>
-              </motion.div>
-            </motion.div>
-          ) : (
-            <motion.div key="choices" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.5 }}
-              style={{ position: 'relative', width: '100%', zIndex: 10 }}>
-              
-              {/* Overlay for clicking outside */}
-              <div 
-                onClick={() => setShowChoices(false)}
-                style={{ position: 'fixed', inset: 0, zIndex: -1, background: 'transparent' }} 
-              />
-
-              <h2 style={{ fontFamily: '"Playfair Display",serif', fontSize: 'clamp(28px, 5vw, 42px)', color: '#C8960C', marginBottom: 50, marginTop: 40, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-                How would you like to start?
-              </h2>
-              
-              <div style={{ display: 'flex', gap: 32, justifyContent: 'center', flexWrap: 'nowrap', maxWidth: 1000, margin: '0 auto', padding: '0 20px' }}>
-                {/* Customized Card */}
-                <motion.div 
-                  whileHover={{ y: -10, scale: 1.02 }}
-                  onClick={(e) => { 
-                    e.stopPropagation();
-                    onOpen();
-                    scrollToSection('custom-section'); 
-                  }}
-                  style={{ 
-                    flex: '1 1 50%', height: 'clamp(320px, 50vh, 420px)', borderRadius: 24, cursor: 'pointer', position: 'relative', overflow: 'hidden', 
-                    border: '1.5px solid rgba(200,150,12,0.35)', boxShadow: '0 25px 50px rgba(0,0,0,0.6)' 
-                  }}
-                >
-                  <img src={customBanner} alt="Customized" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(44,18,0,0.95) 0%, rgba(44,18,0,0.4) 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', padding: '40px 24px' }}>
-                    <h3 style={{ fontFamily: '"Playfair Display",serif', fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, color: '#C8960C', marginBottom: 10, textAlign: 'center', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Customized Laddu</h3>
-                    <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 'clamp(12px, 1.8vw, 15px)', color: 'rgba(255,245,225,0.85)', textAlign: 'center', maxWidth: 300 }}>Craft your own divine recipe with bespoke ingredients</p>
-                  </div>
-                </motion.div>
-
-                {/* Product Card */}
-                <motion.div 
-                  whileHover={{ y: -10, scale: 1.02 }}
-                  onClick={(e) => { 
-                    e.stopPropagation();
-                    navigate('/products');
-                  }}
-                  style={{ 
-                    flex: '1 1 50%', height: 'clamp(320px, 50vh, 420px)', borderRadius: 24, cursor: 'pointer', position: 'relative', overflow: 'hidden', 
-                    border: '1.5px solid rgba(200,150,12,0.35)', boxShadow: '0 25px 50px rgba(0,0,0,0.6)' 
-                  }}
-                >
-                  <img src={catBesan} alt="Collection" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(44,18,0,0.95) 0%, rgba(44,18,0,0.4) 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', padding: '40px 24px' }}>
-                    <h3 style={{ fontFamily: '"Playfair Display",serif', fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, color: '#C8960C', marginBottom: 10, textAlign: 'center', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Product Laddu</h3>
-                    <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 'clamp(12px, 1.8vw, 15px)', color: 'rgba(255,245,225,0.85)', textAlign: 'center', maxWidth: 300 }}>Explore our award-winning signature collection</p>
-                  </div>
-                </motion.div>
-              </div>
-
-              <motion.button 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-                onClick={() => setShowChoices(false)}
-                style={{ background: 'transparent', border: 'none', color: 'rgba(255,245,225,0.4)', marginTop: 32, cursor: 'pointer', fontFamily: 'Poppins,sans-serif', fontSize: 13, textDecoration: 'underline' }}
-              >
-                Go back
-              </motion.button>
-            </motion.div>
-          )}
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.9 }}
+            style={{ position: 'absolute', inset: 0 }}
+          >
+            <img
+              src={HERO_SHOWCASE_SLIDES[idx].image}
+              alt={HERO_SHOWCASE_SLIDES[idx].alt}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: HERO_SHOWCASE_SLIDES[idx].pos,
+                display: 'block',
+              }}
+            />
+          </motion.div>
         </AnimatePresence>
 
-        {/* Stats */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}
-          style={{ display: 'flex', gap: 40, justifyContent: 'center', marginTop: 52, paddingTop: 28, borderTop: '1px solid rgba(255,245,225,0.12)' }}>
-          {[['50K+', 'Happy Customers'], ['100%', 'Pure Ingredients'], ['25+', 'Premium Products']].map(([v, l]) => (
-            <div key={l} style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: '"Playfair Display",serif', fontWeight: 700, fontSize: 24, color: '#C8960C' }}>{v}</div>
-              <div style={{ fontFamily: 'Poppins,sans-serif', fontSize: 11, color: 'rgba(255,245,225,0.5)', marginTop: 3 }}>{l}</div>
+        {/* Seamless Royal Maroon Left-to-Right & Edge Lighting Gradients */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(90deg, #370306 0%, #370306 34%, rgba(50, 3, 6, 0.88) 45%, rgba(45, 3, 5, 0.38) 58%, rgba(30, 1, 3, 0.08) 76%, rgba(25, 1, 3, 0.18) 100%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(28, 1, 3, 0.62) 0%, transparent 18%, transparent 72%, rgba(26, 1, 3, 0.88) 100%)',
+          }}
+        />
+      </div>
+
+      {/* Subtle Ambient Gold Particles */}
+      {PARTICLES.map(p => (
+        <div
+          key={p.id}
+          className="particle"
+          style={{
+            width: p.size,
+            height: p.size,
+            left: `${p.left}%`,
+            bottom: -20,
+            background: 'rgba(226, 178, 74, 0.35)',
+            animationDuration: `${p.dur}s`,
+            animationDelay: `${p.delay}s`,
+            zIndex: 1,
+          }}
+        />
+      ))}
+
+      {/* Bottom Corner Ornamental Mandala Motifs */}
+      <CornerMandala />
+      <CornerMandala flip />
+
+      {/* Main Content Container */}
+      <div className="kbite-hero-inner">
+        <div className="kbite-hero-grid">
+          {/* Left Column */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            className="kbite-hero-left"
+          >
+            {/* Ornamental Lotus + Eyebrow */}
+            <LotusOrnament />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 14 }}>
+              <span style={{ height: 1, width: 'clamp(28px, 5vw, 56px)', background: 'linear-gradient(90deg, transparent, #D4A438)' }} />
+              <span
+                style={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontSize: 'clamp(10px, 1vw, 12px)',
+                  fontWeight: 500,
+                  letterSpacing: '0.26em',
+                  color: '#F3DFB8',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                CRAFTED IN TRADITION
+              </span>
+              <span style={{ height: 1, width: 'clamp(28px, 5vw, 56px)', background: 'linear-gradient(90deg, #D4A438, transparent)' }} />
             </div>
-          ))}
-        </motion.div>
+
+            {/* Main Headline */}
+            <h1
+              style={{
+                fontFamily: '"Playfair Display", serif',
+                fontWeight: 700,
+                fontSize: 'clamp(40px, 4.9vw, 64px)',
+                lineHeight: 1.07,
+                letterSpacing: '-0.01em',
+                marginBottom: 16,
+                textShadow: '0 4px 18px rgba(0, 0, 0, 0.45)',
+              }}
+            >
+              <span style={{ display: 'block', color: '#FAF0DC' }}>Your Laddu.</span>
+              <span style={{ display: 'block', color: '#E6B23D' }}>Your Choice.</span>
+            </h1>
+
+            {/* Description */}
+            <p
+              style={{
+                fontFamily: '"Playfair Display", Georgia, serif',
+                fontWeight: 400,
+                fontSize: 'clamp(15px, 1.3vw, 18px)',
+                lineHeight: 1.55,
+                color: 'rgba(255, 245, 225, 0.9)',
+                maxWidth: 420,
+                margin: '0 auto 26px',
+                textShadow: '0 2px 10px rgba(0, 0, 0, 0.45)',
+              }}
+            >
+              Choose your favorite flavor and create a Gift box made just for you.
+            </p>
+
+            {/* Primary CTA Button */}
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={onOpen}
+              className="kbite-hero-cta"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '15px 34px',
+                borderRadius: 9999,
+                border: '1px solid rgba(255, 232, 163, 0.65)',
+                background: 'linear-gradient(135deg, #F6D56C 0%, #E7B23B 52%, #D4961C 100%)',
+                color: '#1A0800',
+                fontFamily: 'Poppins, sans-serif',
+                fontSize: 'clamp(12px, 1vw, 13.5px)',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                boxShadow: '0 10px 28px rgba(0, 0, 0, 0.45), 0 0 22px rgba(231, 178, 59, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.5)',
+              }}
+            >
+              <span>CUSTOMIZE YOUR LADDU</span>
+              <ArrowRight size={17} strokeWidth={2.2} />
+            </motion.button>
+
+            {/* Feature Highlights */}
+            <div className="kbite-hero-features">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <Leaf size={22} color="#E2B24A" strokeWidth={1.5} style={{ flexShrink: 0 }} />
+                <div style={{ textAlign: 'left', fontFamily: 'Poppins, sans-serif', fontSize: 12, lineHeight: 1.3, color: 'rgba(255, 245, 225, 0.88)' }}>
+                  Freshly<br />Handcrafted
+                </div>
+              </div>
+
+              <span className="kbite-hero-divider" aria-hidden="true" />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <Gem size={22} color="#E2B24A" strokeWidth={1.5} style={{ flexShrink: 0 }} />
+                <div style={{ textAlign: 'left', fontFamily: 'Poppins, sans-serif', fontSize: 12, lineHeight: 1.3, color: 'rgba(255, 245, 225, 0.88)' }}>
+                  Premium<br />Ingredients
+                </div>
+              </div>
+
+              <span className="kbite-hero-divider" aria-hidden="true" />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <Gift size={22} color="#E2B24A" strokeWidth={1.5} style={{ flexShrink: 0 }} />
+                <div style={{ textAlign: 'left', fontFamily: 'Poppins, sans-serif', fontSize: 12, lineHeight: 1.3, color: 'rgba(255, 245, 225, 0.88)' }}>
+                  Perfect for<br />Celebrations
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right Column (Dedicated Mobile/Tablet Visual Showcase; Desktop lets full-bleed background shine unobstructed) */}
+          <div className="kbite-hero-right">
+            <div className="kbite-hero-mobile-visual">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={idx}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.7 }}
+                  src={HERO_SHOWCASE_SLIDES[idx].image}
+                  alt={HERO_SHOWCASE_SLIDES[idx].alt}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: '82% 45%',
+                    display: 'block',
+                  }}
+                />
+              </AnimatePresence>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'radial-gradient(circle at center, transparent 55%, rgba(30, 1, 3, 0.45) 100%)',
+                  pointerEvents: 'none',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Step-2 Variety Type Scroll Slider + Slide Dots */}
+        <div style={{ position: 'relative', zIndex: 4, width: '100%' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, duration: 0.6 }}
+            onMouseEnter={() => setSliderPaused(true)}
+            onMouseLeave={() => {
+              setSliderPaused(false)
+              endDrag()
+            }}
+            onTouchStart={() => setSliderPaused(true)}
+            onTouchEnd={() => setSliderPaused(false)}
+            className="kbite-hero-slider-wrap"
+          >
+            {/* Left Scroll Button */}
+            {scrollState.scrollable && (
+              <button
+                type="button"
+                aria-label="Scroll varieties left"
+                onClick={() => scrollVarieties(-1)}
+                disabled={!scrollState.left}
+                className="kbite-hero-nav-btn"
+                style={{
+                  left: -14,
+                  opacity: scrollState.left ? 1 : 0.35,
+                  pointerEvents: scrollState.left ? 'auto' : 'none',
+                }}
+              >
+                <ChevronLeft size={18} />
+              </button>
+            )}
+
+            {/* Horizontal Scroll Slider Track */}
+            <div
+              ref={sliderRef}
+              onScroll={updateScrollState}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={endDrag}
+              className="kbite-hero-slider-track"
+              style={{
+                justifyContent: scrollState.scrollable ? 'flex-start' : 'center',
+              }}
+            >
+              {loadingVarieties && varieties.length === 0 ? (
+                [0, 1, 2].map((skeletonIdx) => (
+                  <div
+                    key={`skeleton-${skeletonIdx}`}
+                    className="kbite-hero-card-item"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '10px 14px',
+                      borderRadius: 14,
+                      border: '1px solid rgba(218, 165, 50, 0.28)',
+                      background: 'linear-gradient(135deg, rgba(70, 9, 11, 0.65) 0%, rgba(38, 3, 5, 0.72) 100%)',
+                      height: 68,
+                    }}
+                  >
+                    <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'rgba(226, 178, 74, 0.16)', flexShrink: 0 }} />
+                    <div style={{ height: 14, width: '65%', borderRadius: 6, background: 'rgba(255, 245, 225, 0.14)' }} />
+                  </div>
+                ))
+              ) : (
+                displayVarieties.map((item, i) => {
+                  const visual = getVarietyVisual(item, i)
+                  return (
+                    <motion.button
+                      key={item.id || `${item.name}-${i}`}
+                      type="button"
+                      whileHover={{ y: -3, borderColor: 'rgba(235, 185, 65, 0.85)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        if (dragStateRef.current.moved) {
+                          dragStateRef.current.moved = false
+                          return
+                        }
+                        onOpen()
+                      }}
+                      className="kbite-hero-card-item"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '10px 14px',
+                        borderRadius: 14,
+                        border: '1px solid rgba(218, 165, 50, 0.48)',
+                        background: 'linear-gradient(135deg, rgba(70, 9, 11, 0.86) 0%, rgba(38, 3, 5, 0.92) 100%)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        boxShadow: '0 8px 22px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 220, 140, 0.14)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'box-shadow 0.25s ease',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 46,
+                          height: 46,
+                          borderRadius: '50%',
+                          overflow: 'hidden',
+                          flexShrink: 0,
+                          border: '1.5px solid rgba(226, 178, 74, 0.55)',
+                          boxShadow: '0 4px 10px rgba(0, 0, 0, 0.45)',
+                          background: '#2C0204',
+                        }}
+                      >
+                        <img
+                          src={visual.image}
+                          alt={item.name}
+                          draggable={false}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: visual.objPos,
+                            transform: 'scale(1.22)',
+                            display: 'block',
+                          }}
+                        />
+                      </div>
+                      <span
+                        style={{
+                          fontFamily: 'Poppins, sans-serif',
+                          fontSize: 'clamp(12.5px, 1.05vw, 14.5px)',
+                          fontWeight: 600,
+                          color: '#FAF0DC',
+                          lineHeight: 1.25,
+                          letterSpacing: '0.01em',
+                          textTransform: 'capitalize',
+                        }}
+                      >
+                        {item.name}
+                      </span>
+                    </motion.button>
+                  )
+                })
+              )}
+            </div>
+
+            {/* Right Scroll Button */}
+            {scrollState.scrollable && (
+              <button
+                type="button"
+                aria-label="Scroll varieties right"
+                onClick={() => scrollVarieties(1)}
+                disabled={!scrollState.right}
+                className="kbite-hero-nav-btn"
+                style={{
+                  right: -14,
+                  opacity: scrollState.right ? 1 : 0.35,
+                  pointerEvents: scrollState.right ? 'auto' : 'none',
+                }}
+              >
+                <ChevronRight size={18} />
+              </button>
+            )}
+          </motion.div>
+
+          {/* Slide Dots */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 18 }}>
+            {HERO_SHOWCASE_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Hero slide ${i + 1}`}
+                onClick={() => setIdx(i)}
+                style={{
+                  width: i === idx ? 26 : 7,
+                  height: 7,
+                  borderRadius: 9999,
+                  background: i === idx ? '#E5B43B' : 'rgba(255, 245, 225, 0.32)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  padding: 0,
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Slide dots */}
-      <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, zIndex: 2 }}>
-        {HERO_SLIDES.map((_, i) => (
-          <button key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 24 : 8, height: 8, borderRadius: 4, background: i === idx ? '#C8960C' : 'rgba(255,245,225,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.3s' }} />
-        ))}
-      </div>
-
-      {/* Wave */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 50, background: 'linear-gradient(to bottom,transparent,#FFF5E1)', zIndex: 2 }} />
+      {/* Subtle Bottom Blend to Next Section */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 18,
+          background: 'linear-gradient(to bottom, transparent, rgba(255, 245, 225, 0.85), #FFF5E1)',
+          zIndex: 3,
+          pointerEvents: 'none',
+        }}
+      />
     </section>
   )
 }
@@ -216,7 +899,7 @@ function FeaturedProducts() {
   }, [])
 
   return (
-    <section id="featured-section" style={{ padding: '20px clamp(16px, 4vw, 20px) clamp(48px, 8vw, 72px)', background: '#FFF5E1' }}>
+    <section id="featured-section" style={{ padding: 'clamp(44px, 6vw, 60px) clamp(16px, 4vw, 20px) clamp(48px, 8vw, 72px)', background: '#FFF5E1' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
         <SH label="Curated for you" title="Featured" gold="Products" sub="Handpicked delicacies just for you" />
         {loading ? (
@@ -395,9 +1078,6 @@ export default function HomePage() {
   return (
     <div>
       <Hero onOpen={() => setCustomizeLadduOpen(true)} />
-      <div id="custom-section">
-        <CustomizeLadduSection onOpen={() => setCustomizeLadduOpen(true)} />
-      </div>
       <FeaturedProducts />
       <Categories />
       <section style={{ padding: '64px 20px', background: '#FFF5E1' }}>

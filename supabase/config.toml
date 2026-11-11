@@ -9,3 +9,15 @@ entrypoint = "./functions/send-whatsapp-order/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/send-whatsapp-order/*.html" ]
+
+[functions.create-razorpay-order]
+enabled = true
+verify_jwt = true
+import_map = "./functions/create-razorpay-order/deno.json"
+entrypoint = "./functions/create-razorpay-order/index.ts"
+
+[functions.verify-razorpay-payment]
+enabled = true
+verify_jwt = true
+import_map = "./functions/verify-razorpay-payment/deno.json"
+entrypoint = "./functions/verify-razorpay-payment/index.ts"
