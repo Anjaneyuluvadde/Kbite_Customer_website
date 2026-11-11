@@ -888,7 +888,7 @@ function FeaturedProducts() {
         image: p.image_url || p.image,
         rating: p.rating || 4.5,
         reviews: p.reviews || 0,
-        category: p.category || 'sweets',
+        category: p.category || 'ladoos',
         originalPrice: p.old_price,
         discount: p.discount
       }))
@@ -926,7 +926,7 @@ function Categories() {
     <section style={{ padding: 'clamp(48px, 8vw, 64px) clamp(16px, 4vw, 20px)', background: '#F5E6C8' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
         <SH label="Collections" title="Shop by" gold="Category" sub="Discover our exquisite range" />
-        <div className="responsive-grid responsive-grid-1 responsive-grid-2 responsive-grid-3">
+        <div className="responsive-grid-2" style={{ maxWidth: 920, margin: '0 auto' }}>
           {Object.entries(CATEGORY_DATA).map(([id, cat], i) => (
             <motion.div key={id} initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}
               whileHover={{ y: -6 }} onClick={() => navigate(`/products?category=${id}`)}
@@ -979,7 +979,7 @@ function FestivalBanner() {
 function WhyUs() {
   const features = [
     { icon: Leaf, title: 'Pure & Natural', desc: 'No preservatives or artificial colours. 100% natural ingredients sourced ethically.' },
-    { icon: Award, title: 'Handcrafted Daily', desc: 'Made fresh every morning by expert halwais using traditional recipes.' },
+    { icon: Award, title: 'Handcrafted Daily', desc: 'Made fresh every morning by expert artisans using traditional recipes.' },
     { icon: ShieldCheck, title: 'FSSAI Certified', desc: 'All our products meet the highest food safety and quality standards.' },
     { icon: Truck, title: 'Pan-India Delivery', desc: 'Carefully packed and delivered fresh to your doorstep across India.' },
   ]
@@ -1084,7 +1084,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 40, alignItems: 'center' }}>
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <SH label="Our Legacy" title="Handcrafted with" gold="Devotion" sub="Since generations, we've been crafting more than just sweets; we're preserving a legacy of pure ingredients and divine taste." />
+              <SH label="Our Legacy" title="Handcrafted with" gold="Devotion" sub="Since generations, we've been crafting authentic ladoos and nourishing treats; we're preserving a legacy of pure ingredients and divine taste." />
               <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 14, color: '#666', lineHeight: 1.8, marginBottom: 24 }}>
                 Every laddu is shaped by hand, every ingredient is chosen with care. From the pure desi ghee to the finest saffron, our process is a labor of love and a tribute to traditional Indian craftsmanship.
               </p>

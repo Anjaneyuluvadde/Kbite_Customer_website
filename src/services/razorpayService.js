@@ -79,7 +79,7 @@ export async function initiateRazorpayPayment({
     amount: orderData.amount,
     currency: orderData.currency || 'INR',
     name: 'Kbite',
-    description: 'Handcrafted Indian Sweets & Laddus',
+    description: 'Handcrafted Laddus & Dry Fruits',
     order_id: orderData.orderId,
     prefill: {
       name: customer?.name || '',

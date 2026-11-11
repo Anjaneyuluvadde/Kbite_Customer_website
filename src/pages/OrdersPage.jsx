@@ -1,100 +1,424 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
-import { Package, Clock, CheckCircle, PackageOpen, LayoutGrid, List, ArrowRight, ShoppingBag, X, AlertCircle } from 'lucide-react'
+import {
+  Package,
+  Clock,
+  CheckCircle,
+  PackageOpen,
+  LayoutGrid,
+  ShoppingBag,
+  X,
+  AlertCircle,
+  Sparkles,
+} from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { cancelOrder } from '../services/orderService'
-import { AnimatePresence } from 'framer-motion'
 
-const OrderTracking = ({ status }) => {
-  const getActiveStep = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-      case 'confirmed':
-        return 1;
-      case 'processing':
-      case 'preparing':
-        return 2;
-      case 'completed':
-        return 3;
-      case 'delivered':
-        return 4;
-      default:
-        return 1;
+const sortNewestFirst = (list = []) =>
+  [...list].sort((a, b) => {
+    const timeA = a?.created_at ? new Date(a.created_at).getTime() : 0
+    const timeB = b?.created_at ? new Date(b.created_at).getTime() : 0
+    return timeB - timeA
+  })
+
+const getOrderStatusInfo = (status) => {
+  const s = (status || '').toLowerCase()
+
+  if (s.includes('cancel')) {
+    return {
+      key: 'cancelled',
+      badge: 'Cancelled',
+      title: 'Order Cancelled',
+      message: 'This order has been cancelled.',
+      bg: '#FEF2F2',
+      border: 'rgba(239, 68, 68, 0.2)',
+      text: '#DC2626',
+      dot: '#EF4444',
+      Icon: AlertCircle,
     }
-  };
+  }
 
-  const activeStep = getActiveStep(status);
-  const steps = ['Confirmed', 'Preparing', 'Completed', 'Delivered'];
-  
+  if (s.includes('complete') || s.includes('deliver')) {
+    return {
+      key: 'completed',
+      badge: 'Preparing Completed',
+      title: 'Preparing Completed',
+      message: 'Your order is freshly packed — within a short period, we will reach you!',
+      bg: '#ECFDF5',
+      border: 'rgba(16, 185, 129, 0.25)',
+      text: '#047857',
+      dot: '#10B981',
+      Icon: CheckCircle,
+    }
+  }
+
+  if (s.includes('making') || s.includes('prepar') || s.includes('process')) {
+    return {
+      key: 'preparing',
+      badge: 'Preparing Mode',
+      title: 'Preparing Mode',
+      message: 'Our kitchen is freshly preparing your order right now.',
+      bg: '#EFF6FF',
+      border: 'rgba(59, 130, 246, 0.25)',
+      text: '#1D4ED8',
+      dot: '#3B82F6',
+      Icon: Sparkles,
+    }
+  }
+
+  return {
+    key: 'pending',
+    badge: 'Pending',
+    title: 'Pending',
+    message: 'Order booked! Waiting for our team to start preparing it.',
+    bg: '#FFF8E6',
+    border: 'rgba(200, 150, 12, 0.28)',
+    text: '#B45309',
+    dot: '#F59E0B',
+    Icon: Clock,
+  }
+}
+
+const OrderStatusBanner = ({ status }) => {
+  const info = getOrderStatusInfo(status)
+  const StatusIcon = info.Icon
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '24px 0', position: 'relative' }}>
-      <div style={{ position: 'absolute', top: '12px', left: 0, right: 0, height: 2, background: '#eee', transform: 'translateY(-50%)', zIndex: 1 }} />
-      
-      <div style={{ 
-        position: 'absolute', top: '12px', left: 0, 
-        width: `${((activeStep - 1) / (steps.length - 1)) * 100}%`, 
-        height: 2, background: '#C8960C', transform: 'translateY(-50%)', zIndex: 1,
-        transition: 'width 0.5s ease'
-      }} />
-
-      {steps.map((step, index) => {
-        const stepNum = index + 1;
-        const isCompleted = stepNum < activeStep;
-        const isActive = stepNum === activeStep;
-        
-        return (
-          <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, position: 'relative' }}>
-            <div style={{
-              width: 24, height: 24, borderRadius: '50%',
-              background: isCompleted || isActive ? '#C8960C' : '#fff',
-              border: `2px solid ${isCompleted || isActive ? '#C8960C' : '#ccc'}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: isCompleted || isActive ? '#fff' : '#ccc',
-              fontSize: 12, fontWeight: 700,
-              transition: 'all 0.3s ease'
-            }}>
-              {isCompleted ? '✓' : stepNum}
-            </div>
-            <span style={{ 
-              marginTop: 8, fontSize: 11, fontFamily: 'Poppins,sans-serif',
-              color: isActive ? '#C8960C' : (isCompleted ? '#333' : '#aaa'),
-              fontWeight: isActive ? 600 : 400,
-              textAlign: 'center'
-            }}>
-              {step}
-            </span>
-          </div>
-        );
-      })}
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 16px',
+        borderRadius: 14,
+        background: info.bg,
+        border: `1px solid ${info.border}`,
+        marginBottom: 20,
+      }}
+    >
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          background: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+        }}
+      >
+        <StatusIcon size={18} color={info.text} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 13,
+            fontWeight: 700,
+            color: info.text,
+            fontFamily: 'Poppins, sans-serif',
+          }}
+        >
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: info.dot,
+              display: 'inline-block',
+              flexShrink: 0,
+            }}
+          />
+          {info.title}
+        </div>
+        <div
+          style={{
+            fontSize: 12,
+            color: '#555',
+            marginTop: 2,
+            fontFamily: 'Poppins, sans-serif',
+            lineHeight: 1.45,
+          }}
+        >
+          {info.message}
+        </div>
+      </div>
     </div>
-  );
-};
+  )
+}
+
+const OrderCardFrame = ({
+  order,
+  orderType,
+  onNavigate,
+  onCancelClick,
+  onDeleteClick,
+  children,
+  footerTotal,
+  footerRightExtra,
+}) => {
+  const statusInfo = getOrderStatusInfo(order.order_status)
+
+  return (
+    <motion.div
+      whileHover={{ y: -3 }}
+      onClick={onNavigate}
+      style={{
+        background: '#fff',
+        borderRadius: 24,
+        border: '1px solid rgba(200,150,12,0.12)',
+        padding: '26px 28px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+        position: 'relative',
+        cursor: 'pointer',
+      }}
+    >
+      <button
+        type="button"
+        aria-label="Remove order from history"
+        onClick={(e) => {
+          e.stopPropagation()
+          onDeleteClick(order.id, orderType)
+        }}
+        style={{
+          position: 'absolute',
+          top: 20,
+          right: 20,
+          background: 'rgba(0,0,0,0.04)',
+          border: 'none',
+          borderRadius: '50%',
+          width: 32,
+          height: 32,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          color: '#999',
+          transition: 'all 0.2s ease',
+          zIndex: 10,
+        }}
+        onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)')}
+        onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,0.04)')}
+      >
+        <X size={16} />
+      </button>
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: 16,
+          marginBottom: 18,
+          paddingRight: 44,
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 11, color: '#999', marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Order ID
+          </div>
+          <div style={{ fontWeight: 700, color: '#2C1200', fontSize: 15 }}>
+            #{order.order_number}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <span
+            style={{
+              padding: '6px 14px',
+              borderRadius: 20,
+              fontSize: 12,
+              fontWeight: 700,
+              background: statusInfo.bg,
+              color: statusInfo.text,
+              border: `1px solid ${statusInfo.border}`,
+            }}
+          >
+            {statusInfo.badge}
+          </span>
+
+          {statusInfo.key === 'pending' && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onCancelClick(order.id, orderType)
+              }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 600,
+                background: '#FEF2F2',
+                color: '#EF4444',
+                border: '1px solid rgba(239, 68, 68, 0.15)',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel Order
+            </button>
+          )}
+        </div>
+      </div>
+
+      <OrderStatusBanner status={order.order_status} />
+
+      {statusInfo.key === 'cancelled' && order.cancel_reason && (
+        <div
+          style={{
+            fontSize: 12,
+            color: '#DC2626',
+            background: '#FEF2F2',
+            padding: '8px 12px',
+            borderRadius: 10,
+            marginBottom: 16,
+            fontWeight: 500,
+          }}
+        >
+          Cancel Reason: {order.cancel_reason}
+        </div>
+      )}
+
+      {children}
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 12,
+        }}
+      >
+        <div style={{ fontSize: 13, color: '#666' }}>
+          <Clock size={14} style={{ marginRight: 6, display: 'inline', verticalAlign: '-2px' }} />
+          {order.created_at
+            ? new Date(order.created_at).toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : ''}
+        </div>
+
+        <div style={{ textAlign: 'right' }}>
+          {footerRightExtra}
+          <div style={{ fontSize: 11, color: '#999', marginBottom: 2 }}>Total Amount</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#C8960C' }}>
+            ₹{Number(footerTotal || 0).toFixed(2)}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
 
 const OrdersPage = () => {
   const { user, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState([])
   const [customOrders, setCustomOrders] = useState([])
+  const [activeTab, setActiveTab] = useState('product')
+  const [hasChosenTab, setHasChosenTab] = useState(false)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
-  // Cancellation state
   const [cancelModal, setCancelModal] = useState({ isOpen: false, orderId: null, type: null })
   const [cancelReason, setCancelReason] = useState('')
   const [isCancelling, setIsCancelling] = useState(false)
+
+  const fetchOrders = useCallback(async ({ showSpinner = true } = {}) => {
+    if (!user?.email) return
+    try {
+      if (showSpinner) setLoading(true)
+
+      const [{ data: pOrders, error: pError }, { data: cOrders, error: cError }] = await Promise.all([
+        supabase
+          .from('product_orders')
+          .select('*')
+          .eq('customer_email', user.email)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('customized_orders')
+          .select('*')
+          .eq('customer_email', user.email)
+          .order('created_at', { ascending: false }),
+      ])
+
+      if (pError) throw pError
+      if (cError) throw cError
+
+      const sortedNormal = sortNewestFirst(pOrders || [])
+      const sortedCustom = sortNewestFirst(cOrders || [])
+      setOrders(sortedNormal)
+      setCustomOrders(sortedCustom)
+
+      if (!hasChosenTab) {
+        if (sortedNormal.length === 0 && sortedCustom.length > 0) {
+          setActiveTab('custom')
+        } else if (sortedNormal.length > 0 && sortedCustom.length > 0) {
+          const latestNormalTime = new Date(sortedNormal[0].created_at || 0).getTime()
+          const latestCustomTime = new Date(sortedCustom[0].created_at || 0).getTime()
+          setActiveTab(latestCustomTime > latestNormalTime ? 'custom' : 'product')
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching orders:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [user?.email, hasChosenTab])
+
+  useEffect(() => {
+    if (user?.email) {
+      fetchOrders()
+    } else if (!authLoading) {
+      setLoading(false)
+    }
+  }, [user?.email, authLoading, fetchOrders])
+
+  // Auto-refresh order status on window focus / visibility change and periodic polling
+  useEffect(() => {
+    if (!user?.email) return
+
+    const refresh = () => {
+      if (document.visibilityState === 'visible') {
+        fetchOrders({ showSpinner: false })
+      }
+    }
+
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    const interval = setInterval(refresh, 25000)
+
+    return () => {
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+      clearInterval(interval)
+    }
+  }, [user?.email, fetchOrders])
+
+  const handleTabChange = (tab) => {
+    setHasChosenTab(true)
+    setActiveTab(tab)
+  }
 
   const handleCancelOrder = async () => {
     if (!cancelReason.trim()) return
     setIsCancelling(true)
     try {
-      // Update order status using service
       const { error } = await cancelOrder(cancelModal.orderId, cancelModal.type, cancelReason.trim())
-
       if (error) throw error
 
-      // Refresh
-      fetchOrders()
+      await fetchOrders({ showSpinner: false })
       setCancelModal({ isOpen: false, orderId: null, type: null })
       setCancelReason('')
       alert('Order cancelled successfully.')
@@ -111,75 +435,24 @@ const OrdersPage = () => {
 
     try {
       const table = type === 'normal' ? 'product_orders' : 'customized_orders'
-      const { error } = await supabase
-        .from(table)
-        .delete()
-        .eq('id', orderId)
-
+      const { error } = await supabase.from(table).delete().eq('id', orderId)
       if (error) throw error
 
-      // Refresh
-      fetchOrders()
+      await fetchOrders({ showSpinner: false })
     } catch (err) {
       console.error('Error deleting order:', err)
       alert('Failed to remove order. Please try again.')
     }
   }
 
-  useEffect(() => {
-    if (user?.email) {
-      fetchOrders()
-    } else if (!authLoading) {
-      setLoading(false)
-    }
-  }, [user, authLoading])
-
-  const fetchOrders = async () => {
-    try {
-      setLoading(true)
-
-      // Fetch normal orders
-      const { data: pOrders, error: pError } = await supabase
-        .from('product_orders')
-        .select('*')
-        .eq('customer_email', user.email)
-        .order('created_at', { ascending: false })
-
-      if (pError) throw pError
-      setOrders(pOrders || [])
-
-      // Fetch customized orders
-      const { data: cOrders, error: cError } = await supabase
-        .from('customized_orders')
-        .select('*')
-        .eq('customer_email', user.email)
-        .order('created_at', { ascending: false })
-
-      if (cError) throw cError
-      setCustomOrders(cOrders || [])
-
-    } catch (err) {
-      console.error('Error fetching orders:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'delivered': return { bg: '#E1F9EB', text: '#10B981' }
-      case 'pending': return { bg: '#FFF5E1', text: '#F59E0B' }
-      case 'processing': return { bg: '#EFF6FF', text: '#3B82F6' }
-      case 'cancelled': return { bg: '#FEF2F2', text: '#EF4444' }
-      default: return { bg: '#F3F4F6', text: '#6B7280' }
-    }
-  }
-
   if (authLoading || loading) {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFF5E1' }}>
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          style={{ width: 40, height: 40, border: '4px solid rgba(200,150,12,0.1)', borderTopColor: '#C8960C', borderRadius: '50%' }} />
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          style={{ width: 40, height: 40, border: '4px solid rgba(200,150,12,0.1)', borderTopColor: '#C8960C', borderRadius: '50%' }}
+        />
       </div>
     )
   }
@@ -198,10 +471,9 @@ const OrdersPage = () => {
   const hasNoOrders = orders.length === 0 && customOrders.length === 0
 
   return (
-    <div style={{ background: '#FFF5E1', minHeight: '100vh', paddingTop: 120, paddingBottom: 80 }}>
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px' }}>
-
-        <header style={{ marginBottom: 48, textAlign: 'center' }}>
+    <div style={{ background: '#FFF5E1', minHeight: '100vh', paddingTop: 112, paddingBottom: 80 }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 20px' }}>
+        <header style={{ marginBottom: 32, textAlign: 'center' }}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="section-label">Order History</span>
             <h1 className="section-title" style={{ fontSize: 'clamp(32px, 4vw, 48px)' }}>
@@ -220,186 +492,163 @@ const OrdersPage = () => {
             <Link to="/products" className="btn-primary" style={{ textDecoration: 'none' }}>Start Shopping</Link>
           </motion.div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 60 }}>
+          <div>
+            {/* Top Order Type Tabs */}
+            <div
+              role="tablist"
+              aria-label="Order categories"
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 12,
+                flexWrap: 'wrap',
+                marginBottom: 32,
+              }}
+            >
+              {[
+                { id: 'product', label: 'Product Orders', count: orders.length, Icon: ShoppingBag },
+                { id: 'custom', label: 'Customized Orders', count: customOrders.length, Icon: LayoutGrid },
+              ].map((tab) => {
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => handleTabChange(tab.id)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '12px 22px',
+                      borderRadius: 14,
+                      border: isActive ? '1.5px solid #C8960C' : '1.5px solid rgba(200,150,12,0.2)',
+                      background: isActive ? '#C8960C' : '#fff',
+                      color: isActive ? '#fff' : '#2C1200',
+                      fontFamily: 'Poppins, sans-serif',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      boxShadow: isActive ? '0 8px 20px rgba(200,150,12,0.25)' : '0 2px 8px rgba(0,0,0,0.03)',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {React.createElement(tab.Icon, { size: 17 })}
+                    <span>{tab.label}</span>
+                    <span
+                      style={{
+                        padding: '2px 9px',
+                        borderRadius: 20,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        background: isActive ? 'rgba(255,255,255,0.22)' : '#FFF5E1',
+                        color: isActive ? '#fff' : '#C8960C',
+                      }}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
 
-            {/* Normal Orders */}
-            {orders.length > 0 && (
-              <section>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-                  <ShoppingBag size={24} color="#C8960C" />
-                  <h2 style={{ fontSize: 20, fontWeight: 700, color: '#2C1200' }}>Product Orders ({orders.length})</h2>
+            {activeTab === 'product' && (
+              orders.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '56px 24px', background: '#fff', borderRadius: 24, border: '1px solid rgba(200,150,12,0.1)' }}>
+                  <p style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 8 }}>No Product Orders yet</p>
+                  <p style={{ fontSize: 13, color: '#777', marginBottom: 20 }}>Browse our handcrafted ladoos and dry fruits to place a product order.</p>
+                  <Link to="/products" className="btn-primary" style={{ textDecoration: 'none' }}>Browse Products</Link>
                 </div>
+              ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   {orders.map((order) => (
-                    <motion.div
+                    <OrderCardFrame
                       key={order.id}
-                      whileHover={{ y: -4 }}
-                      onClick={() => {
+                      order={order}
+                      orderType="normal"
+                      footerTotal={order.total}
+                      onNavigate={() => {
                         const firstItem = order.items?.[0]
                         const productId = firstItem?.product_id || firstItem?.id
-                        if (productId) {
-                          navigate(`/product/${productId}`)
-                        } else {
-                          navigate('/products')
-                        }
+                        navigate(productId ? `/product/${productId}` : '/products')
                       }}
-                      style={{ background: '#fff', borderRadius: 24, border: '1px solid rgba(200,150,12,0.1)', padding: 32, boxShadow: '0 10px 30px rgba(0,0,0,0.03)', position: 'relative', cursor: 'pointer' }}
+                      onCancelClick={(id, type) => setCancelModal({ isOpen: true, orderId: id, type })}
+                      onDeleteClick={handleDeleteOrder}
                     >
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id, 'normal') }}
-                        style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(0,0,0,0.03)', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#999', transition: 'all 0.2s ease', zIndex: 10 }}
-                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
-                      >
-                        <X size={16} />
-                      </button>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 20, marginBottom: 24, paddingRight: 40 }}>
-                        <div>
-                          <div style={{ fontSize: 13, color: '#999', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order ID</div>
-                          <div style={{ fontWeight: 700, color: '#2C1200' }}>#{order.order_number}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 12 }}>
-                          <span style={{
-                            padding: '6px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700,
-                            background: getStatusColor(order.order_status).bg, color: getStatusColor(order.order_status).text
-                          }}>
-                            {order.order_status || 'Pending'}
-                          </span>
-                          {order.order_status?.toLowerCase() === 'pending' && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setCancelModal({ isOpen: true, orderId: order.id, type: 'normal' }) }}
-                              style={{ padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, background: '#FEF2F2', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.1)', cursor: 'pointer' }}
-                            >
-                              Cancel Order
-                            </button>
-                          )}
-                          {order.order_status?.toLowerCase() === 'cancelled' && order.cancel_reason && (
-                            <div style={{ fontSize: 12, color: '#EF4444', background: '#FEF2F2', padding: '4px 12px', borderRadius: 8, marginTop: 4, fontWeight: 500 }}>
-                              Reason: {order.cancel_reason}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <OrderTracking status={order.order_status} />
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid #f5f5f5', borderBottom: '1px solid #f5f5f5', padding: '20px 0', marginBottom: 24 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid #f5f5f5', borderBottom: '1px solid #f5f5f5', padding: '18px 0', marginBottom: 18 }}>
                         {order.items?.map((item, idx) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                              <div style={{ width: 44, height: 44, background: '#FFF5E1', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Package size={20} color="#C8960C" />
+                              <div style={{ width: 42, height: 42, background: '#FFF5E1', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Package size={19} color="#C8960C" />
                               </div>
                               <div>
-                                <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14 }}>{item.name}</div>
+                                <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14 }}>
+                                  {item.name}
+                                  {item.selected_size ? <span style={{ color: '#888', fontWeight: 500 }}> ({item.selected_size})</span> : null}
+                                </div>
                                 <div style={{ fontSize: 12, color: '#666' }}>Qty: {item.quantity || item.qty} | ₹{item.price}</div>
                               </div>
                             </div>
-                            <div style={{ fontWeight: 600, color: '#2C1200' }}>₹{(item.price * (item.quantity || item.qty)).toFixed(2)}</div>
+                            <div style={{ fontWeight: 600, color: '#2C1200', whiteSpace: 'nowrap' }}>
+                              ₹{(Number(item.price || 0) * Number(item.quantity || item.qty || 1)).toFixed(2)}
+                            </div>
                           </div>
                         ))}
                       </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: 14, color: '#666' }}>
-                          <Clock size={14} style={{ marginRight: 6, display: 'inline' }} />
-                          {new Date(order.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                          <div style={{ fontSize: 12, color: '#C8960C', marginTop: 8, fontWeight: 600 }}>
-                            Expect your order at your doorstep within 3 days.
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>Total Amount</div>
-                          <div style={{ fontSize: 24, fontWeight: 800, color: '#C8960C' }}>₹{order.total.toFixed(2)}</div>
-                        </div>
-                      </div>
-                    </motion.div>
+                    </OrderCardFrame>
                   ))}
                 </div>
-              </section>
+              )
             )}
 
-            {/* Customized Orders */}
-            {customOrders.length > 0 && (
-              <section>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-                  <LayoutGrid size={24} color="#C8960C" />
-                  <h2 style={{ fontSize: 20, fontWeight: 700, color: '#2C1200' }}>Customized Laddu Orders ({customOrders.length})</h2>
+            {activeTab === 'custom' && (
+              customOrders.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '56px 24px', background: '#fff', borderRadius: 24, border: '1px solid rgba(200,150,12,0.1)' }}>
+                  <p style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 8 }}>No Customized Orders yet</p>
+                  <p style={{ fontSize: 13, color: '#777', marginBottom: 20 }}>Build your own custom laddu with your favourite nuts and ingredients.</p>
+                  <Link to="/" className="btn-primary" style={{ textDecoration: 'none' }}>Customize a Laddu</Link>
                 </div>
+              ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   {customOrders.map((order) => (
-                    <motion.div
+                    <OrderCardFrame
                       key={order.id}
-                      whileHover={{ y: -4 }}
-                      onClick={() => navigate('/products')}
-                      style={{ background: '#fff', borderRadius: 24, border: '1px solid rgba(200,150,12,0.1)', padding: 32, boxShadow: '0 10px 30px rgba(0,0,0,0.03)', position: 'relative', cursor: 'pointer' }}
-                    >
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id, 'custom') }}
-                        style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(0,0,0,0.03)', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#999', transition: 'all 0.2s ease', zIndex: 10 }}
-                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
-                      >
-                        <X size={16} />
-                      </button>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 20, marginBottom: 24, paddingRight: 40 }}>
-                        <div>
-                          <div style={{ fontSize: 13, color: '#999', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order ID</div>
-                          <div style={{ fontWeight: 700, color: '#2C1200' }}>#{order.order_number}</div>
+                      order={order}
+                      orderType="custom"
+                      footerTotal={order.total_price}
+                      footerRightExtra={
+                        <div style={{ fontSize: 12, fontWeight: 600, color: '#666', marginBottom: 4 }}>
+                          Qty: {order.quantity}
                         </div>
-                        <span style={{
-                          padding: '6px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700,
-                          background: getStatusColor(order.order_status).bg, color: getStatusColor(order.order_status).text
-                        }}>
-                          {order.order_status || 'Pending'}
-                        </span>
-                        {order.order_status?.toLowerCase() === 'pending' && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setCancelModal({ isOpen: true, orderId: order.id, type: 'custom' }) }}
-                            style={{ padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, background: '#FEF2F2', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.1)', cursor: 'pointer' }}
-                          >
-                            Cancel Order
-                          </button>
-                        )}
-                        {order.order_status?.toLowerCase() === 'cancelled' && order.cancel_reason && (
-                          <div style={{ fontSize: 12, color: '#EF4444', background: '#FEF2F2', padding: '4px 12px', borderRadius: 8, marginTop: 4, fontWeight: 500 }}>
-                            Reason: {order.cancel_reason}
-                          </div>
-                        )}
-                      </div>
-
-                      <OrderTracking status={order.order_status} />
-
-                      <div style={{ background: '#FFFBF4', borderRadius: 16, padding: '24px', marginBottom: 24, border: '1px dashed rgba(200,150,12,0.2)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                          <h3 style={{ fontWeight: 700, color: '#2C1200' }}>{order.customized_product_name}</h3>
-                          <div style={{ fontWeight: 800, color: '#C8960C' }}>₹{order.total_price.toFixed(2)}</div>
+                      }
+                      onNavigate={() => navigate('/products')}
+                      onCancelClick={(id, type) => setCancelModal({ isOpen: true, orderId: id, type })}
+                      onDeleteClick={handleDeleteOrder}
+                    >
+                      <div style={{ background: '#FFFBF4', borderRadius: 16, padding: 20, marginBottom: 18, border: '1px dashed rgba(200,150,12,0.22)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                          <h3 style={{ fontWeight: 700, color: '#2C1200', fontSize: 16 }}>{order.customized_product_name}</h3>
+                          {order.customizations?.size && (
+                            <span style={{ fontSize: 12, fontWeight: 600, color: '#C8960C' }}>
+                              {order.customizations.size}
+                            </span>
+                          )}
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                           {order.ingredients?.map((ing, idx) => (
-                            <span key={idx} style={{ background: '#fff', padding: '4px 10px', borderRadius: 6, fontSize: 11, color: '#666', border: '1px solid #f0f0f0' }}>{typeof ing === 'object' ? ing.name : ing}</span>
+                            <span key={idx} style={{ background: '#fff', padding: '4px 10px', borderRadius: 6, fontSize: 11, color: '#666', border: '1px solid #f0f0f0' }}>
+                              {typeof ing === 'object' ? ing.name : ing}
+                            </span>
                           ))}
                         </div>
                       </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: 14, color: '#666' }}>
-                          <Clock size={14} style={{ marginRight: 6, display: 'inline' }} />
-                          {new Date(order.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                          <div style={{ fontSize: 12, color: '#C8960C', marginTop: 8, fontWeight: 600 }}>
-                            Order will be delivered within 3 days
-                          </div>
-                        </div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: '#2C1200' }}>
-                          Quantity: {order.quantity}
-                        </div>
-                      </div>
-                    </motion.div>
+                    </OrderCardFrame>
                   ))}
                 </div>
-              </section>
+              )
             )}
-
           </div>
         )}
       </div>
@@ -408,13 +657,25 @@ const OrdersPage = () => {
       <AnimatePresence>
         {cancelModal.isOpen && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setCancelModal({ ...cancelModal, isOpen: false })}
-              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCancelModal({ ...cancelModal, isOpen: false })}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+            />
 
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              style={{ position: 'relative', width: '100%', maxWidth: 450, background: '#fff', borderRadius: 24, padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
-
-              <button onClick={() => setCancelModal({ ...cancelModal, isOpen: false })} style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              style={{ position: 'relative', width: '100%', maxWidth: 450, background: '#fff', borderRadius: 24, padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
+            >
+              <button
+                type="button"
+                onClick={() => setCancelModal({ ...cancelModal, isOpen: false })}
+                style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}
+              >
                 <X size={24} />
               </button>
 
@@ -425,10 +686,14 @@ const OrdersPage = () => {
                 <h3 style={{ fontSize: 22, fontWeight: 700, color: '#2C1200' }}>Cancel Order</h3>
               </div>
 
-              <p style={{ color: '#666', marginBottom: 24, lineHeight: 1.6 }}>Please let us know the reason for cancellation. This helps us improve our service.</p>
+              <p style={{ color: '#666', marginBottom: 24, lineHeight: 1.6 }}>
+                Please let us know the reason for cancellation. This helps us improve our service.
+              </p>
 
               <div style={{ marginBottom: 24 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#2C1200', marginBottom: 8 }}>Reason for Cancellation</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#2C1200', marginBottom: 8 }}>
+                  Reason for Cancellation
+                </label>
                 <textarea
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
@@ -439,19 +704,28 @@ const OrdersPage = () => {
 
               <div style={{ display: 'flex', gap: 12 }}>
                 <button
+                  type="button"
                   onClick={() => setCancelModal({ ...cancelModal, isOpen: false })}
                   style={{ flex: 1, padding: '14px', borderRadius: 12, border: '1.5px solid #eee', background: '#fff', color: '#666', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Go Back
                 </button>
                 <button
+                  type="button"
                   disabled={isCancelling || !cancelReason.trim()}
                   onClick={handleCancelOrder}
                   style={{
-                    flex: 1, padding: '14px', borderRadius: 12, border: 'none',
+                    flex: 1,
+                    padding: '14px',
+                    borderRadius: 12,
+                    border: 'none',
                     background: cancelReason.trim() ? '#EF4444' : '#fee2e2',
-                    color: '#fff', fontWeight: 600, cursor: cancelReason.trim() ? 'pointer' : 'not-allowed',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    color: '#fff',
+                    fontWeight: 600,
+                    cursor: cancelReason.trim() ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   {isCancelling ? 'Cancelling...' : 'Confirm Cancel'}

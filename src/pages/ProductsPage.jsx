@@ -26,7 +26,7 @@ export default function ProductsPage() {
         image: p.image_url || p.image,
         rating: p.rating || 4.5,
         reviews: p.reviews || 0,
-        category: p.category || 'sweets',
+        category: p.category || 'ladoos',
         originalPrice: p.old_price,
         discount: p.discount
       }))
@@ -84,7 +84,7 @@ export default function ProductsPage() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search sweets, ladoos..."
+              placeholder="Search ladoos, dry fruits..."
               style={{
                 width: '100%', padding: '14px 14px 14px 48px',
                 borderRadius: 12, border: '1px solid #EAEAEA',

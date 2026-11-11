@@ -65,20 +65,21 @@ export default function LoginPage() {
         toast.success('Welcome back! 🙏')
         navigate(from, { replace: true })
       } else {
-        const { data, error } = await signUp(form.email, form.password)
+        const { data, error } = await signUp(form.email, form.password, form.name)
         if (error) throw error
 
         const user = data.user
         if (user) {
           const { error: profileError } = await supabase
             .from('profiles')
-            .insert([
+            .upsert(
               {
                 id: user.id,
                 full_name: form.name,
                 email: form.email,
               },
-            ])
+              { onConflict: 'id' }
+            )
 
           if (profileError) throw profileError
         }

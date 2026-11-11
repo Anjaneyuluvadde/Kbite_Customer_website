@@ -120,7 +120,7 @@ export default function CartPage() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', paddingTop: 80 }}>
             <ShoppingBag size={72} color="#ddd" style={{ margin: '0 auto 20px' }} />
             <p style={{ fontFamily: '"Playfair Display",serif', fontSize: 26, color: '#bbb', marginBottom: 8 }}>Your cart is empty</p>
-            <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 14, color: '#ccc', marginBottom: 28 }}>Add some divine sweets to get started!</p>
+            <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 14, color: '#ccc', marginBottom: 28 }}>Add some handcrafted ladoos or dry fruits to get started!</p>
             <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={() => navigate('/products')}
               style={{ padding: '13px 32px', background: '#C8960C', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontFamily: 'Poppins,sans-serif', fontSize: 15, fontWeight: 600 }}>
               Browse Products

@@ -18,7 +18,7 @@ export default function Footer() {
               </h3>
             </div>
             <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: 'rgba(255,245,225,0.6)', lineHeight: 1.7 }}>
-              Premium handcrafted Indian sweets, divine ladoos, and finest dry fruits. Made with love, blessed with tradition.
+              Handcrafted ladoos and finest dry fruits. Made with love, blessed with tradition.
             </p>
           </div>
           <div>

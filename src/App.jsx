@@ -10,7 +10,7 @@ import SplashScreen from './components/SplashScreen'
 import Navbar from './components/Navbar'
 import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
-import FloatingChat from './components/FloatingChat'
+import FloatingCart from './components/FloatingCart'
 import ScrollToTop from './components/ScrollToTop'
 
 import HomePage from './pages/HomePage'
@@ -64,7 +64,7 @@ function AppRoutes() {
         </Routes>
       </AnimatePresence>
       <Footer />
-      <FloatingChat />
+      <FloatingCart />
     </>
   )
 }

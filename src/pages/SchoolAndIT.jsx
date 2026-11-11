@@ -316,7 +316,7 @@ const SchoolAndIT = () => {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40 }}>
             {[
-              { title: "Dry Fruit Bars", desc: "A power-packed snack with 80% whole nuts and natural sweetness.", img: showcaseImg },
+              { title: "Dry Fruit Bars", desc: "A power-packed snack with 80% whole nuts and natural goodness.", img: showcaseImg },
               { title: "Protein Chocolate Bars", desc: "Guilt-free indulgence with rich cocoa and premium Whey or Plant protein.", img: showcaseImg },
               { title: "Mixed Dry Fruit Packs", desc: "Handpicked premium almonds, cashews, and raisins for daily energy.", img: showcaseImg },
               { title: "School Snack Boxes", desc: "Specially curated weekly packs for children's healthy snacking habits.", img: showcaseImg },

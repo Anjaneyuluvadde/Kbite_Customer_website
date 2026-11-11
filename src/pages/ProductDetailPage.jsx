@@ -15,7 +15,7 @@ const normalizeProduct = (p) => ({
   image: p.image_url || p.image,
   rating: p.rating || 4.5,
   reviews: p.reviews || 0,
-  category: p.category || 'sweets',
+  category: p.category || 'ladoos',
   originalPrice: p.old_price,
   discount: p.discount,
 })
@@ -47,7 +47,7 @@ export default function ProductDetailPage() {
       setRelated(
         found
           ? (allProducts || [])
-              .filter(p => String(p.id) !== String(id) && (p.category || 'sweets') === found.category)
+              .filter(p => String(p.id) !== String(id) && (p.category || 'ladoos') === found.category)
               .slice(0, 4)
               .map(normalizeProduct)
           : []

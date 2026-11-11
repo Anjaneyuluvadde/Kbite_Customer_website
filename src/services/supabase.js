@@ -8,8 +8,12 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 export const signIn = (email, password) =>
   supabase.auth.signInWithPassword({ email, password })
 
-export const signUp = (email, password) =>
-  supabase.auth.signUp({ email, password })
+export const signUp = (email, password, fullName = '') =>
+  supabase.auth.signUp({
+    email,
+    password,
+    options: fullName ? { data: { full_name: fullName } } : undefined,
+  })
 
 export const signOut = () => supabase.auth.signOut()
 

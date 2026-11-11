@@ -19,7 +19,7 @@ export default function OrderSuccessPage() {
         <h1 style={{ fontFamily: '"Playfair Display",serif', fontSize: 30, fontWeight: 700, color: '#333', marginBottom: 8 }}>Order Placed! 🙏</h1>
         <p style={{ fontFamily: '"Playfair Display",serif', fontSize: 16, color: '#C8960C', fontStyle: 'italic', marginBottom: 16 }}>Jai Shri Krishna</p>
         <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 14, color: '#888', lineHeight: 1.7, marginBottom: 24 }}>
-          Your divine sweets are on their way! We've sent a confirmation to your email. Expect delivery in 3-5 business days.
+          Your handcrafted ladoos and dry fruits are on their way! We've sent a confirmation to your email. Expect delivery in 3-5 business days.
         </p>
         <div style={{ background: '#FFF5E1', borderRadius: 12, padding: '14px 20px', marginBottom: 28 }}>
           <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 11, color: '#C8960C', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Order Number</p>

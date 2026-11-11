@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, MapPin, CreditCard, Phone, Mail, User } from 'lucide-react'
+import { ArrowLeft, MapPin, CreditCard, Phone, Mail, User, Package } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { createOrder } from '../services/orderService'
 import { initiateRazorpayPayment } from '../services/razorpayService'
 import { useStoreSettings, calculateShipping } from '../services/settingsService'
+import customCardBanner from '../assets/images/custom_laddu_banner.png'
 
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart()
@@ -170,16 +171,35 @@ export default function CheckoutPage() {
             <div className="checkout-summary-card" style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid rgba(200,150,12,0.12)' }}>
               <h2 style={{ fontFamily: '"Playfair Display",serif', fontSize: 20, fontWeight: 700, color: '#333', marginBottom: 18 }}>Order Summary</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16, maxHeight: 220, overflowY: 'auto' }}>
-                {items.map(item => (
-                  <div key={item.id} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <img src={item.image} alt={item.name} style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 12, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</p>
-                      <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 11, color: '#aaa' }}>Qty: {item.qty}</p>
+                {items.map(item => {
+                  const isCustom = item.type === 'customized' || (Array.isArray(item.ingredients) && item.ingredients.length > 0)
+                  const thumbSrc = isCustom
+                    ? customCardBanner
+                    : (item.image || '').replace('http://', 'https://')
+
+                  return (
+                    <div key={item.id} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      {thumbSrc ? (
+                        <img
+                          src={thumbSrc}
+                          alt={item.name || 'Order item'}
+                          style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
+                        />
+                      ) : (
+                        <div style={{ width: 44, height: 44, borderRadius: 8, background: '#FFF5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Package size={18} color="#C8960C" />
+                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 12, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</p>
+                        <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 11, color: '#aaa' }}>
+                          Qty: {item.qty}{item.selected_size ? ` · ${item.selected_size}` : ''}
+                        </p>
+                      </div>
+                      <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, fontWeight: 600, color: '#C8960C', flexShrink: 0 }}>₹{(item.price * item.qty).toLocaleString()}</p>
                     </div>
-                    <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, fontWeight: 600, color: '#C8960C', flexShrink: 0 }}>₹{(item.price * item.qty).toLocaleString()}</p>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               <div style={{ borderTop: '1px solid rgba(200,150,12,0.12)', paddingTop: 14, marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
