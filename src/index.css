@@ -414,3 +414,69 @@ select {
   font-weight: 600;
   margin: 6px 0;
 }
+
+/* Animated rotating border tracer for primary Customize Laddu CTAs */
+@keyframes kbiteBorderSpin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.btn-border-anim {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: none !important;
+  background: transparent !important;
+}
+
+.btn-border-anim::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 165%;
+  aspect-ratio: 1 / 1;
+  z-index: -2;
+  background: conic-gradient(
+    from 0deg,
+    rgba(92, 42, 0, 0.72) 0deg,
+    rgba(200, 150, 12, 0.55) 55deg,
+    #FFF8CC 95deg,
+    #FFFFFF 115deg,
+    #FFE066 140deg,
+    rgba(92, 42, 0, 0.72) 185deg,
+    rgba(200, 150, 12, 0.55) 235deg,
+    #FFF8CC 275deg,
+    #FFFFFF 295deg,
+    #FFE066 320deg,
+    rgba(92, 42, 0, 0.72) 360deg
+  );
+  animation: kbiteBorderSpin 3.4s linear infinite;
+  pointer-events: none;
+}
+
+.btn-border-anim:hover::before {
+  animation-duration: 1.9s;
+}
+
+.btn-border-anim::after {
+  content: '';
+  position: absolute;
+  inset: 2.5px;
+  z-index: -1;
+  border-radius: calc(var(--btn-radius, 9999px) - 2.5px);
+  background: var(--btn-bg, linear-gradient(135deg, #F6D56C 0%, #E7B23B 52%, #D4961C 100%));
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.48), inset 0 -1px 2px rgba(92, 42, 0, 0.2);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-border-anim::before {
+    animation: none;
+  }
+}

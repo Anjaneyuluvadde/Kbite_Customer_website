@@ -5,6 +5,7 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { signIn, signUp, signInWithGoogle, supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import kbiteLogo from '../assets/images/kbite_logo.png'
 
 export default function LoginPage() {
   const [mode, setMode] = useState('login')
@@ -133,19 +134,21 @@ export default function LoginPage() {
         }}>
           {/* Logo */}
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <motion.div
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-              style={{ fontSize: 36, marginBottom: 8 }}
-            >
-              🪈
-            </motion.div>
-            <h1 style={{
-              fontFamily: '"Playfair Display",serif', fontWeight: 700,
-              fontSize: 22, color: '#C8960C', letterSpacing: '0.04em', marginBottom: 4,
-            }}>
-              Kbite
-            </h1>
+            <motion.img
+              src={kbiteLogo}
+              alt="Kbite — Protein In Every Bite"
+              initial={{ scale: 0.94, opacity: 0.9 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              style={{
+                height: 58,
+                width: 'auto',
+                objectFit: 'contain',
+                margin: '0 auto 10px',
+                display: 'block',
+                filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.08))',
+              }}
+            />
             <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: '#aaa' }}>
               {mode === 'login' ? 'Welcome back!' : 'Create your account'}
             </p>

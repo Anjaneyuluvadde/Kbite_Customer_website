@@ -15,7 +15,7 @@ import besanThumb from '../assets/images/besan_laddu_product.png'
 import coconutThumb from '../assets/images/coconut_laddu_product.png'
 import dryFruitThumb from '../assets/images/dry_fruit_laddu_product.png'
 import kajuThumb from '../assets/images/kaju_laddu_product.png'
-import logoEk from '../assets/images/logo_ek.png'
+import kbiteLogo from '../assets/images/kbite_logo.png'
 
 /* ── Particles ── */
 const PARTICLES = Array.from({ length: 14 }, (_, i) => ({ id: i, size: Math.random() * 5 + 3, left: Math.random() * 100, dur: Math.random() * 8 + 6, delay: Math.random() * 6 }))
@@ -571,15 +571,15 @@ function Hero({ onOpen }) {
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}
               onClick={onOpen}
-              className="kbite-hero-cta"
+              className="kbite-hero-cta btn-border-anim"
               style={{
+                '--btn-bg': 'linear-gradient(135deg, #F6D56C 0%, #E7B23B 52%, #D4961C 100%)',
+                '--btn-radius': '9999px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 10,
                 padding: '15px 34px',
                 borderRadius: 9999,
-                border: '1px solid rgba(255, 232, 163, 0.65)',
-                background: 'linear-gradient(135deg, #F6D56C 0%, #E7B23B 52%, #D4961C 100%)',
                 color: '#1A0800',
                 fontFamily: 'Poppins, sans-serif',
                 fontSize: 'clamp(12px, 1vw, 13.5px)',
@@ -587,7 +587,7 @@ function Hero({ onOpen }) {
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 cursor: 'pointer',
-                boxShadow: '0 10px 28px rgba(0, 0, 0, 0.45), 0 0 22px rgba(231, 178, 59, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.5)',
+                boxShadow: '0 10px 28px rgba(0, 0, 0, 0.45), 0 0 22px rgba(231, 178, 59, 0.35)',
               }}
             >
               <span>CUSTOMIZE YOUR LADDU</span>
@@ -1044,11 +1044,17 @@ function Newsletter() {
   return (
     <section style={{ padding: '64px 20px', background: '#2C1200' }}>
       <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ maxWidth: 520, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-          <img src={logoEk} alt="EK Logo" style={{ height: 56, width: 'auto', objectFit: 'contain', filter: 'brightness(1.2)' }} />
-          <h2 style={{ fontFamily: '"Playfair Display",serif', fontSize: 36, fontWeight: 700, color: '#FFF5E1', marginBottom: 0 }}>
-            K<span style={{ color: '#C8960C' }}>bite</span>
-          </h2>
+        <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <img
+            src={kbiteLogo}
+            alt="Kbite — Protein In Every Bite"
+            style={{
+              height: 70,
+              width: 'auto',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.35))',
+            }}
+          />
         </div>
         <p style={{ fontFamily: 'Poppins,sans-serif', fontSize: 14, color: 'rgba(255,245,225,0.55)', marginBottom: 28 }}>
           Exclusive offers, festival deals and new arrivals in your inbox.

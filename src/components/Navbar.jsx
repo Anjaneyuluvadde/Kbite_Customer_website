@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { signOut } from '../services/supabase'
 import { ShoppingCart, Menu, X, User, LogOut, Heart, Package, LogIn } from 'lucide-react'
-import logoEk from '../assets/images/logo_ek.png'
+import kbiteLogo from '../assets/images/kbite_logo.png'
 import toast from 'react-hot-toast'
 import { useRef } from 'react'
 
@@ -79,25 +79,21 @@ export default function Navbar() {
             }}
             style={{ textDecoration: 'none', flex: '1 1 0', minWidth: 0 }}
           >
-            <motion.div whileHover={{ scale: 1.02 }} style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+            <motion.div whileHover={{ scale: 1.03 }} style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
               <img
-                src={logoEk}
-                alt="Logo"
+                src={kbiteLogo}
+                alt="Kbite — Protein In Every Bite"
                 style={{
-                  height: 48,
+                  height: 'clamp(42px, 5vw, 52px)',
                   width: 'auto',
+                  maxWidth: '100%',
                   objectFit: 'contain',
-                  filter: isSolid ? 'brightness(1)' : 'brightness(1.1) drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                  display: 'block',
+                  filter: isSolid
+                    ? 'drop-shadow(0 1px 4px rgba(0,0,0,0.08))'
+                    : 'drop-shadow(0 3px 10px rgba(0,0,0,0.38))',
                 }}
               />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily: '"Playfair Display",serif', fontWeight: 700, fontSize: 19, color: isSolid ? '#C8960C' : '#fff', lineHeight: 1, letterSpacing: '0.05em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: navTextShadow }}>
-                  Kbite
-                </div>
-                <div style={{ fontFamily: 'Poppins,sans-serif', fontSize: 10, color: isSolid ? '#A07808' : 'rgba(255,255,255,0.9)', opacity: 0.9, letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: 2, textShadow: navTextShadow }}>
-                  Handcrafted Devotion
-                </div>
-              </div>
             </motion.div>
           </Link>
 

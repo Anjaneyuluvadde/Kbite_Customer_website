@@ -157,8 +157,10 @@ export default function CustomizeLadduSection({ onOpen }) {
               onClick={onOpen}
               whileHover={{ scale: 1.04, y: -2 }}
               whileTap={{ scale: 0.96 }}
-              className="btn-primary"
+              className="btn-primary btn-border-anim"
               style={{
+                '--btn-bg': 'linear-gradient(135deg, #C8960C 0%, #A07808 100%)',
+                '--btn-radius': '14px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 10,

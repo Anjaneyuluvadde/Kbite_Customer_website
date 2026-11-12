@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import kbiteLogo from '../assets/images/kbite_logo.png'
 
 function Particle({ style }) {
   return <div className="particle" style={style} />
@@ -76,29 +77,26 @@ export default function SplashScreen({ onDone }) {
           </div>
         </motion.div>
 
-        {/* Main Title */}
-        <motion.h1
-          initial={{ opacity: 0, scale: 0.6, y: 20 }}
+        {/* Main Brand Logo */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.72, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            fontFamily: '"Playfair Display", serif',
-            fontWeight: 900,
-            fontSize: 'clamp(52px, 12vw, 100px)',
-            letterSpacing: '0.06em',
-            background: 'linear-gradient(90deg, #8B6800 0%, #C8960C 30%, #F0D060 50%, #C8960C 70%, #8B6800 100%)',
-            backgroundSize: '200% auto',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            animation: 'shimmer 2.5s linear infinite',
-            position: 'relative', zIndex: 1,
-            textAlign: 'center',
-            lineHeight: 1.1,
-          }}
+          transition={{ delay: 0.45, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'relative', zIndex: 1 }}
         >
-          Kbite
-        </motion.h1>
+          <img
+            src={kbiteLogo}
+            alt="Kbite — Protein In Every Bite"
+            style={{
+              height: 'clamp(78px, 16vw, 128px)',
+              width: 'auto',
+              maxWidth: '82vw',
+              objectFit: 'contain',
+              display: 'block',
+              filter: 'drop-shadow(0 12px 32px rgba(0,0,0,0.45))',
+            }}
+          />
+        </motion.div>
 
         {/* Tagline */}
         <motion.p
