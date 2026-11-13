@@ -170,79 +170,138 @@ export default function PoliciesPage({ initialTab }) {
                     </div>
                     <div>
                       <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: 26, fontWeight: 700, color: '#2C1200', marginBottom: 2 }}>
-                        About Kbite
+                        About Us
                       </h2>
                       <p style={{ fontSize: 13, color: '#888', margin: 0 }}>
-                        Handcrafted Devotion &bull; Protein in Every Bite
+                        Ebite / Kbite – Homemade Protein Bars &amp; Laddus
                       </p>
                     </div>
                   </div>
 
                   <hr style={{ border: 'none', borderTop: '1px solid rgba(200,150,12,0.15)', margin: '20px 0 28px' }} />
 
-                  <h3 style={{ fontFamily: '"Playfair Display", serif', fontSize: 20, color: '#2C1200', marginBottom: 12 }}>
-                    Our Heritage &amp; Philosophy
+                  <h3 style={{ fontFamily: '"Playfair Display", serif', fontSize: 21, color: '#2C1200', marginBottom: 12 }}>
+                    Our Story &amp; Purpose
                   </h3>
-                  <p style={{ marginBottom: 20, color: '#555' }}>
-                    Welcome to <strong>Kbite</strong>. Inspired by traditional culinary roots and handcrafted with reverence, Kbite brings together the timeless purity of Indian confectionery with modern nutritional vitality. Every laddu and dry fruit delicacy we prepare is a celebration of authentic taste, clean ingredients, and dedicated craftsmanship.
+                  <p style={{ marginBottom: 18, color: '#555' }}>
+                    <strong>Ebite / Kbite – Home Made Protein Bars/Laddus</strong> began as a small family home kitchen with a simple mission: to provide wholesome protein food to every individual along with their regular daily meals. The authentic taste of traditional seeds and nuts-based food is very helpful to add genuine nutritional value to your diet.
                   </p>
-                  <p style={{ marginBottom: 24, color: '#555' }}>
-                    We believe true luxury lies in honest ingredients. We use 100% pure desi cow ghee, premium nuts (almonds, cashews, pistachios, dates, walnuts), organic besan, and natural sweeteners. We strictly avoid artificial preservatives, synthetic food colors, and refined palm oils.
+                  <p style={{ marginBottom: 18, color: '#555' }}>
+                    Our journey started when we realized that our Indian daily consumption of protein is very low. Our daily three meals typically consist of Idly, Dosa, Rice, Curries &amp; Chapatis, and we rarely eat nutrient-dense nuts and seeds.
+                  </p>
+                  <p style={{ marginBottom: 18, color: '#555' }}>
+                    Today, we continue this legacy by combining traditional cooking methods with modern food safety standards. Every bar, laddu, and nutritional snack is made with the same love, care, and attention to detail that has been our hallmark for generations.
+                  </p>
+                  <p style={{ marginBottom: 18, color: '#555' }}>
+                    We believe in the power of <strong>Nuts &amp; Seeds</strong>—these ancient combinations are not only delicious but also incredibly nutritious. Our products stand as a testament to the rich culinary heritage of our region.
+                  </p>
+                  <p style={{ marginBottom: 28, color: '#555' }}>
+                    We are dedicated to providing <strong>highly nutritious school snacks for your children</strong>. You can effortlessly pack this protein-rich bar or laddu into your child’s daily school lunch box for sustained energy throughout the day.
                   </p>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, margin: '28px 0' }}>
-                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.15)', borderRadius: 16, padding: 20 }}>
-                      <div style={{ fontSize: 24, marginBottom: 8 }}>🌿</div>
-                      <h4 style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 6 }}>100% Pure &amp; Wholesome</h4>
+                  <h3 style={{ fontFamily: '"Playfair Display", serif', fontSize: 20, color: '#2C1200', marginBottom: 16 }}>
+                    Why Thousands of Customers Trust Us
+                  </h3>
+                  <p style={{ fontSize: 13.5, color: '#666', marginBottom: 22 }}>
+                    Discover what makes our handcrafted foods special and why families rely on us for their daily healthy snacking:
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18, marginBottom: 32 }}>
+                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.18)', borderRadius: 16, padding: 20 }}>
+                      <div style={{ fontSize: 24, marginBottom: 8 }}>🛡️</div>
+                      <h4 style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 6 }}>Quality Assurance</h4>
                       <p style={{ fontSize: 13, color: '#666', margin: 0 }}>
-                        Crafted with premium slow-roasted pulses, finest grade dry fruits, and unadulterated cow ghee.
+                        Every product undergoes strict quality checks to ensure you receive only the best. We maintain the highest standards of hygiene and food safety.
                       </p>
                     </div>
-                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.15)', borderRadius: 16, padding: 20 }}>
-                      <div style={{ fontSize: 24, marginBottom: 8 }}>💪</div>
-                      <h4 style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 6 }}>Protein In Every Bite</h4>
+
+                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.18)', borderRadius: 16, padding: 20 }}>
+                      <div style={{ fontSize: 24, marginBottom: 8 }}>🚚</div>
+                      <h4 style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 6 }}>Fresh Delivery</h4>
                       <p style={{ fontSize: 13, color: '#666', margin: 0 }}>
-                        Nourishing formulations tailored for health-conscious families, growing school children, and active working professionals.
+                        We prepare your orders fresh and deliver them quickly to maintain the authentic taste and maximum nutritional value of our products.
                       </p>
                     </div>
-                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.15)', borderRadius: 16, padding: 20 }}>
+
+                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.18)', borderRadius: 16, padding: 20 }}>
                       <div style={{ fontSize: 24, marginBottom: 8 }}>✨</div>
-                      <h4 style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 6 }}>Custom Crafting</h4>
+                      <h4 style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 6 }}>Traditional Methods</h4>
                       <p style={{ fontSize: 13, color: '#666', margin: 0 }}>
-                        Pioneering interactive customization, allowing customers to curate bespoke laddu formulations per their dietary preferences.
+                        Our time-tested recipes and traditional cooking methods ensure that every bite takes you back to the authentic flavors of yesteryears.
+                      </p>
+                    </div>
+
+                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.18)', borderRadius: 16, padding: 20 }}>
+                      <div style={{ fontSize: 24, marginBottom: 8 }}>❤️</div>
+                      <h4 style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 6 }}>Customer Satisfaction</h4>
+                      <p style={{ fontSize: 13, color: '#666', margin: 0 }}>
+                        With thousands of happy customers, we take pride in our commitment to excellence and heartfelt customer satisfaction in every order.
                       </p>
                     </div>
                   </div>
 
+                  {/* Health Benefits Section */}
+                  <div style={{ background: '#FFF5E1', border: '1px solid rgba(200,150,12,0.25)', borderRadius: 18, padding: 24, marginBottom: 32 }}>
+                    <h4 style={{ fontFamily: '"Playfair Display", serif', fontSize: 19, fontWeight: 700, color: '#2C1200', marginBottom: 14 }}>
+                      Health Benefits of Our Products
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12 }}>
+                      {[
+                        'Rich in natural fiber and essential micronutrients',
+                        'Gluten-free, wholesome and easily digestible',
+                        'Prepared with organic jaggery and pure cow ghee',
+                        'Zero artificial colors, synthetic flavors or preservatives',
+                        'Suitable and nourishing for all age groups',
+                        'Elegantly packed and perfect for festive gifting',
+                      ].map((benefit, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, color: '#4A2D06' }}>
+                          <CheckCircle2 size={18} color="#C8960C" style={{ flexShrink: 0 }} />
+                          <span>{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Social Proof & Rating Highlights */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18, marginBottom: 32 }}>
+                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.2)', borderRadius: 18, padding: 22, textAlign: 'center' }}>
+                      <div style={{ fontSize: 36, fontWeight: 800, color: '#C8960C', fontFamily: '"Playfair Display", serif', lineHeight: 1.1 }}>
+                        4.8★
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#2C1200', marginTop: 4 }}>Customer Rating</div>
+                      <p style={{ fontSize: 12, color: '#777', margin: '4px 0 0' }}>Verified across orders and festive hampers</p>
+                    </div>
+
+                    <div style={{ background: '#FFFBF4', border: '1px solid rgba(200,150,12,0.2)', borderRadius: 18, padding: 22, textAlign: 'center' }}>
+                      <div style={{ fontSize: 36, fontWeight: 800, color: '#C8960C', fontFamily: '"Playfair Display", serif', lineHeight: 1.1 }}>
+                        98%
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#2C1200', marginTop: 4 }}>Repeat Customers</div>
+                      <p style={{ fontSize: 12, color: '#777', margin: '4px 0 0' }}>Loving the authentic traditional taste</p>
+                    </div>
+                  </div>
+
                   {/* Registered Business & Regulatory Information Box */}
-                  <div style={{ background: '#FDFBF7', border: '1px solid rgba(200, 150, 12, 0.25)', borderRadius: 18, padding: 24, marginTop: 32 }}>
+                  <div style={{ background: '#FDFBF7', border: '1px solid rgba(200, 150, 12, 0.25)', borderRadius: 18, padding: 24 }}>
                     <h4 style={{ fontSize: 15, fontWeight: 700, color: '#C8960C', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Shield size={18} /> Official Business Identity &amp; Registrations
+                      <Shield size={18} /> Official Business Identity &amp; Location
                     </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14, fontSize: 13.5 }}>
                       <div>
-                        <span style={{ color: '#888', display: 'block', fontSize: 12 }}>Legal Entity Name</span>
-                        <strong style={{ color: '#2C1200' }}>[Insert Registered Legal Entity / Company Name]</strong>
-                      </div>
-                      <div>
                         <span style={{ color: '#888', display: 'block', fontSize: 12 }}>Brand / Trade Name</span>
-                        <strong style={{ color: '#2C1200' }}>Kbite</strong>
+                        <strong style={{ color: '#2C1200' }}>Kbite / Ebite (EatKrishna)</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#888', display: 'block', fontSize: 12 }}>FSSAI Registration / License No.</span>
-                        <strong style={{ color: '#2C1200' }}>[Insert FSSAI License Number]</strong>
+                        <span style={{ color: '#888', display: 'block', fontSize: 12 }}>Facility &amp; Kitchen Address</span>
+                        <strong style={{ color: '#2C1200' }}>KPHB 7th Phase, Near Ankura Hospital, Kukatpally, Hyderabad, India - 500082</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#888', display: 'block', fontSize: 12 }}>GST Identification Number (GSTIN)</span>
-                        <strong style={{ color: '#2C1200' }}>[Insert GSTIN, if applicable]</strong>
+                        <span style={{ color: '#888', display: 'block', fontSize: 12 }}>Customer Care Phone</span>
+                        <strong style={{ color: '#2C1200' }}>+91 9121 838383</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#888', display: 'block', fontSize: 12 }}>Operating Location</span>
-                        <strong style={{ color: '#2C1200' }}>Vrindavan, Uttar Pradesh 281121, India</strong>
-                      </div>
-                      <div>
-                        <span style={{ color: '#888', display: 'block', fontSize: 12 }}>Support Contact</span>
-                        <strong style={{ color: '#2C1200' }}>hello@kbite.in | +91 98765 43210</strong>
+                        <span style={{ color: '#888', display: 'block', fontSize: 12 }}>Customer Care Email</span>
+                        <strong style={{ color: '#2C1200' }}>eatkrishna@gmail.com</strong>
                       </div>
                     </div>
                   </div>
@@ -285,7 +344,7 @@ export default function PoliciesPage({ initialTab }) {
                           </div>
                           <div>
                             <span style={{ fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Customer Support Email</span>
-                            <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14 }}>hello@kbite.in</div>
+                            <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14 }}>eatkrishna@gmail.com</div>
                             <span style={{ fontSize: 12, color: '#777' }}>Response turnaround: within 24 hours</span>
                           </div>
                         </div>
@@ -296,7 +355,7 @@ export default function PoliciesPage({ initialTab }) {
                           </div>
                           <div>
                             <span style={{ fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Customer Care Phone</span>
-                            <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14 }}>+91 98765 43210</div>
+                            <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14 }}>+91 9121 838383</div>
                             <span style={{ fontSize: 12, color: '#777' }}>Direct line &amp; WhatsApp Support</span>
                           </div>
                         </div>
@@ -306,9 +365,13 @@ export default function PoliciesPage({ initialTab }) {
                             <MapPin size={20} />
                           </div>
                           <div>
-                            <span style={{ fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Registered &amp; Operating Address</span>
-                            <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14 }}>Vrindavan, Uttar Pradesh 281121, India</div>
-                            <span style={{ fontSize: 12, color: '#777' }}>[Insert Complete Official Registered Street Address]</span>
+                            <span style={{ fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Address</span>
+                            <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14, lineHeight: 1.5 }}>
+                              KPHB 7th Phase,<br />
+                              Near Ankura Hospital,<br />
+                              Kukatpally - Hyderabad,<br />
+                              India - 500082
+                            </div>
                           </div>
                         </div>
 
@@ -317,9 +380,11 @@ export default function PoliciesPage({ initialTab }) {
                             <Clock size={20} />
                           </div>
                           <div>
-                            <span style={{ fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Operational Hours</span>
-                            <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14 }}>Monday – Saturday: 9:00 AM – 7:00 PM IST</div>
-                            <span style={{ fontSize: 12, color: '#777' }}>Closed on Sundays &amp; National Holidays</span>
+                            <span style={{ fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Business Hours</span>
+                            <div style={{ fontWeight: 600, color: '#2C1200', fontSize: 14, lineHeight: 1.5 }}>
+                              Monday – Saturday: 9:00 AM – 7:00 PM<br />
+                              Sunday: 10:00 AM – 5:00 PM
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -329,10 +394,10 @@ export default function PoliciesPage({ initialTab }) {
                         <div style={{ fontSize: 12, fontWeight: 700, color: '#C8960C', textTransform: 'uppercase', marginBottom: 4 }}>
                           Grievance Officer
                         </div>
-                        <p style={{ fontSize: 13, color: '#555', margin: 0 }}>
-                          Name: <strong>[Insert Grievance Officer Name]</strong><br />
-                          Email: <strong>grievance@kbite.in</strong> (or <strong>hello@kbite.in</strong>)<br />
-                          Contact: <strong>+91 98765 43210</strong>
+                        <p style={{ fontSize: 13, color: '#555', margin: 0, lineHeight: 1.6 }}>
+                          Email: <strong>eatkrishna@gmail.com</strong><br />
+                          Contact: <strong>+91 9121 838383</strong><br />
+                          Address: <strong>KPHB 7th Phase, Near Ankura Hospital, Kukatpally - Hyderabad, India - 500082</strong>
                         </p>
                       </div>
                     </div>
@@ -388,7 +453,7 @@ export default function PoliciesPage({ initialTab }) {
                                 type="tel"
                                 value={contactForm.phone}
                                 onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                                placeholder="+91 98765..."
+                                placeholder="+91 9121..."
                                 className="input-field"
                                 style={{ padding: '10px 14px', fontSize: 13 }}
                               />
@@ -667,7 +732,7 @@ export default function PoliciesPage({ initialTab }) {
                     <div>
                       <h4 style={{ fontSize: 16, fontWeight: 600, color: '#2C1200', marginBottom: 6 }}>5. Your Rights &amp; Data Rectification</h4>
                       <p>
-                        You have the right to access, review, correct, or request deletion of your account profile at any time by contacting our customer care team at <strong>hello@kbite.in</strong>.
+                        You have the right to access, review, correct, or request deletion of your account profile at any time by contacting our customer care team at <strong>eatkrishna@gmail.com</strong>.
                       </p>
                     </div>
                   </div>
@@ -719,7 +784,7 @@ export default function PoliciesPage({ initialTab }) {
                         If your package arrives with damaged external packaging, broken security seals, or contains items different from what was ordered:
                       </p>
                       <ul style={{ paddingLeft: 22, marginTop: 6 }}>
-                        <li>Please notify our support team at <strong>hello@kbite.in</strong> or <strong>+91 98765 43210</strong> within <strong>[Insert Damage Reporting Window, e.g., 24 to 48 hours]</strong> of delivery.</li>
+                        <li>Please notify our support team at <strong>eatkrishna@gmail.com</strong> or <strong>+91 9121 838383</strong> within <strong>[Insert Damage Reporting Window, e.g., 24 to 48 hours]</strong> of delivery.</li>
                         <li>Please share your Order ID, clear photographs of the outer package, shipping label, and the condition of the inner contents.</li>
                         <li>Upon review and verification, we will promptly dispatch a fresh replacement free of charge or initiate a full refund.</li>
                       </ul>

@@ -66,7 +66,7 @@ export default function Footer() {
             <h4 style={{ fontFamily: 'Poppins,sans-serif', fontSize: 14, fontWeight: 600, color: '#C8960C', marginBottom: 14 }}>
               Contact
             </h4>
-            {['📞 +91 98765 43210', '📧 hello@kbite.in', '📍 Vrindavan, UP 281121'].map(t => (
+            {['📞 +91 9121 838383', '📧 eatkrishna@gmail.com', '📍 KPHB 7th Phase, Hyderabad - 500082'].map(t => (
               <p key={t} style={{ fontFamily: 'Poppins,sans-serif', fontSize: 13, color: 'rgba(255,245,225,0.6)', marginBottom: 8 }}>
                 {t}
               </p>
