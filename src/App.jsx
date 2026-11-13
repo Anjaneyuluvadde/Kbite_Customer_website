@@ -23,6 +23,7 @@ import LoginPage from './pages/LoginPage'
 import WishlistPage from './pages/WishlistPage'
 import SchoolAndIT from './pages/SchoolAndIT'
 import OrdersPage from './pages/OrdersPage'
+import PoliciesPage from './pages/PoliciesPage'
 
 function PageWrap({ children }) {
   return (
@@ -51,6 +52,13 @@ function AppRoutes() {
           <Route path="/wishlist" element={<PageWrap><WishlistPage /></PageWrap>} />
           <Route path="/school-it" element={<PageWrap><SchoolAndIT /></PageWrap>} />
           <Route path="/orders" element={<PageWrap><OrdersPage /></PageWrap>} />
+          <Route path="/policies" element={<PageWrap><PoliciesPage /></PageWrap>} />
+          <Route path="/about" element={<PageWrap><PoliciesPage initialTab="about" /></PageWrap>} />
+          <Route path="/contact" element={<PageWrap><PoliciesPage initialTab="contact" /></PageWrap>} />
+          <Route path="/pricing" element={<PageWrap><PoliciesPage initialTab="pricing" /></PageWrap>} />
+          <Route path="/terms" element={<PageWrap><PoliciesPage initialTab="terms" /></PageWrap>} />
+          <Route path="/privacy" element={<PageWrap><PoliciesPage initialTab="privacy" /></PageWrap>} />
+          <Route path="/refund-policy" element={<PageWrap><PoliciesPage initialTab="refund" /></PageWrap>} />
           <Route path="*" element={
             <PageWrap>
               <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FFF5E1', textAlign: 'center', paddingTop: 60 }}>

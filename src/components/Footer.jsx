@@ -43,6 +43,27 @@ export default function Footer() {
           </div>
           <div>
             <h4 style={{ fontFamily: 'Poppins,sans-serif', fontSize: 14, fontWeight: 600, color: '#C8960C', marginBottom: 14 }}>
+              Policies &amp; Legal
+            </h4>
+            {[
+              ['About Us', '/about'],
+              ['Contact Us', '/contact'],
+              ['Pricing Policy', '/pricing'],
+              ['Terms & Conditions', '/terms'],
+              ['Privacy Policy', '/privacy'],
+              ['Cancellation & Refund', '/refund-policy'],
+            ].map(([label, to]) => (
+              <Link key={to} to={to} style={{
+                display: 'block', color: 'rgba(255,245,225,0.6)',
+                textDecoration: 'none', fontFamily: 'Poppins,sans-serif',
+                fontSize: 13, marginBottom: 8, transition: 'color 0.2s',
+              }} className="hover:text-amber-300">
+                {label}
+              </Link>
+            ))}
+          </div>
+          <div>
+            <h4 style={{ fontFamily: 'Poppins,sans-serif', fontSize: 14, fontWeight: 600, color: '#C8960C', marginBottom: 14 }}>
               Contact
             </h4>
             {['📞 +91 98765 43210', '📧 hello@kbite.in', '📍 Vrindavan, UP 281121'].map(t => (

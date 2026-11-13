@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { signOut } from '../services/supabase'
-import { ShoppingCart, Menu, X, User, LogOut, Heart, Package, LogIn } from 'lucide-react'
+import { ShoppingCart, Menu, X, User, LogOut, Heart, Package, LogIn, FileText } from 'lucide-react'
 import kbiteLogo from '../assets/images/kbite_logo.png'
 import toast from 'react-hot-toast'
 import { useRef } from 'react'
@@ -152,6 +152,10 @@ export default function Navbar() {
                           <div style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Logged in as</div>
                           <div style={{ fontSize: 13, fontWeight: 600, color: '#2C1200', wordBreak: 'break-all' }}>{user.email}</div>
                         </div>
+                        <button onClick={() => { setAccountMenuOpen(false); navigate('/policies') }} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 14px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10, color: '#555', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'Poppins, sans-serif' }} className="hover:bg-amber-50">
+                          <FileText size={18} color="#C8960C" />
+                          <span style={{ fontSize: 14, fontWeight: 500 }}>Policies &amp; Information</span>
+                        </button>
                         <button onClick={() => navigate('/orders')} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 14px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10, color: '#555', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'Poppins, sans-serif' }} className="hover:bg-amber-50">
                           <Package size={18} color="#C8960C" />
                           <span style={{ fontSize: 14, fontWeight: 500 }}>My Orders</span>
@@ -166,6 +170,10 @@ export default function Navbar() {
                         <button onClick={() => navigate('/login')} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 14px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10, color: '#555', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'Poppins, sans-serif' }} className="hover:bg-amber-50">
                           <LogIn size={18} color="#C8960C" />
                           <span style={{ fontSize: 14, fontWeight: 500 }}>Login</span>
+                        </button>
+                        <button onClick={() => { setAccountMenuOpen(false); navigate('/policies') }} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 14px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10, color: '#555', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'Poppins, sans-serif' }} className="hover:bg-amber-50">
+                          <FileText size={18} color="#C8960C" />
+                          <span style={{ fontSize: 14, fontWeight: 500 }}>Policies &amp; Information</span>
                         </button>
                         <button onClick={() => navigate('/orders')} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 14px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10, color: '#555', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'Poppins, sans-serif' }} className="hover:bg-amber-50">
                           <Package size={18} color="#C8960C" />
@@ -195,7 +203,7 @@ export default function Navbar() {
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
               style={{ background: '#FFF5E1', borderTop: '1px solid rgba(200,150,12,0.15)', overflow: 'hidden' }}>
               <div style={{ padding: '14px clamp(16px, 4vw, 20px) 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {[['Home', '/'], ['Products', '/products'], ['School & IT', '/school-it'], ['Wishlist', '/wishlist']].map(([label, path]) => (
+                {[['Home', '/'], ['Products', '/products'], ['School & IT', '/school-it'], ['Wishlist', '/wishlist'], ['Policies & Information', '/policies']].map(([label, path]) => (
                   <Link key={path} to={path} style={{ textDecoration: 'none', color: '#555', fontFamily: 'Poppins,sans-serif', fontSize: 15, padding: '6px 0', borderBottom: '1px solid rgba(200,150,12,0.08)' }}>{label}</Link>
                 ))}
                 {user

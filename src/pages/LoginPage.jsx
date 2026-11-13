@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { signIn, signUp, signInWithGoogle, supabase } from '../services/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -268,8 +268,15 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <p style={{ textAlign: 'center', fontFamily: 'Poppins,sans-serif', fontSize: 12, color: '#bbb', marginTop: 16 }}>
-          By continuing, you agree to our Terms & Privacy Policy
+        <p style={{ textAlign: 'center', fontFamily: 'Poppins,sans-serif', fontSize: 12, color: '#888', marginTop: 16, lineHeight: 1.6 }}>
+          By continuing, you agree to our{' '}
+          <Link to="/terms" style={{ color: '#C8960C', textDecoration: 'underline', fontWeight: 500 }}>
+            Terms &amp; Conditions
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy" style={{ color: '#C8960C', textDecoration: 'underline', fontWeight: 500 }}>
+            Privacy Policy
+          </Link>
         </p>
       </motion.div>
     </div>
